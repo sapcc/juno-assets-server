@@ -21,11 +21,7 @@ run:
   args:
     - -c
     - |
-      FAIL='\033[0;31m'
-      SUCCESS='\033[0;32m'
-      INFO='\033[0;36m'
-      NC='\033[0m' # No Color
-
+      source /ci/scripts/logger.sh
       EXIT_CODE=1 # error
 
       # create the build-log file 
@@ -36,17 +32,17 @@ run:
         NAME=$(basename $(dirname $f))
         TYPE=$(basename $(dirname $(dirname $f)))
         VERSION=""
-        echo -e "${INFO}found $NAME in $TYPE, checking... ${NC}"
+        msg_info "found $NAME in $TYPE, checking..."
         
         if [ "$TYPE" != "libs" ] && [ "$TYPE" != "apps" ]; then
-          echo -e "${FAIL}  parent folder should be apps or libs, found $TYPE${NC}"
+          msg_error "parent folder should be apps or libs, found $TYPE"
           ERROR="${ERROR} $invalid parent folder $TYPE,"
           PASSED=false
         fi
 
         # loop over keys name, repository and version
         for key in name version repository; do
-          echo -ne "${INFO}  $key ${NC}"
+          echo -ne "${BLUE}  $key ${NC}"
           VALUE=$(grep -o "\"$key\":\\s*\"[^\"]*" $f | grep -o '[^"]*$')
           if [ "$key" == "version" ]; then
             VERSION=$VALUE
@@ -55,16 +51,16 @@ run:
           # in one line
 
           if [ -z "$VALUE" ]; then
-            echo -e "${FAIL}missing${NC}"
+            msg_error "missing"
             ERROR="${ERROR} $key is missing,"
             PASSED=false
           else 
-            echo -e "${SUCCESS}${VALUE}${NC}"
+            msg_success " ${VALUE}"
           fi
         done
         
         if [ $TYPE == "libs" ]; then
-          echo -e "${INFO}  main file ${SUCCESS}not applicable${NC}"
+          msg_info "  main file ${GREEN}not applicable"
           continue
         fi
 
@@ -73,20 +69,20 @@ run:
         if [ -z $MAIN ]; then 
           MAIN=$(grep -o '"module":\s*"[^"]*' $f | grep -o '[^"]*$')
           if [ -z $MAIN ] || [ ! -f "./input/$TYPE/$NAME/$MAIN" ]; then
-            echo -e "${INFO}  main file ${FAIL}missing${NC}"
+            msg_info "  main file ${RED}missing"
             ERROR="${ERROR} main file is missing,"
             PASSED=false
           else
-            echo -e "${INFO}  main file ${SUCCESS}$MAIN${NC}"  
+            msg_info "  main file ${GREEN}$MAIN"  
           fi  
         fi  
 
         if $PASSED; then 
-          echo -e "${SUCCESS}  PASSED${NC}"
+          msg_success "  PASSED"
           EXIT_CODE=0 # success, we have at least one valid asset
           mkdir -p ./output/$TYPE/$NAME && cp -r $(dirname $f) ./output/$TYPE/
         else 
-          echo -e "${FAIL}  FAILED${NC}"
+          msg_error "  FAILED"
         fi
 
         jq ". += [{\"name\":\"$NAME\",\"type\":\"$TYPE\",\"version\":\"$VERSION\",\"date\":\"$(date +%s)\",\"passed\":$PASSED,\"error\":\"$ERROR\" }]" output/build-log.json > tmp.json && mv tmp.json output/build-log.json 

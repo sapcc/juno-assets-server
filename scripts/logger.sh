@@ -23,7 +23,7 @@ log() {
 }
 
 msg_error() {
-  echo -e "${RED}ERROR: ${1}${NC} 👎"
+  echo -e "${RED}${1}${NC} 👎"
 }
 
 msg_info() {
@@ -31,7 +31,7 @@ msg_info() {
 }
 
 msg_warning() {
-  echo -e "${YELLOW}WARNING: ${1}${NC}"
+  echo -e "${YELLOW}${1}${NC}"
 }
 
 msg_success() {
@@ -44,10 +44,10 @@ msg_default() {
 
 msg_debug() {
   if [[ -n "$DEBUG" ]]; then
-    echo -e "${BOLD_BLUE}DEBUG: ${1}${NC}"
+    echo -e "${BOLD_BLUE}${1}${NC}"
   fi
 }
 
 msg_help() {
-  echo -e "${GREEN}HELP: ${1}${NC}"
+  echo -e "${GREEN}${1}${NC}"
 }
