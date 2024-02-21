@@ -39,6 +39,8 @@ run:
         exit 0
       fi
 
+      EXIT_CODE=1
+
       for f in assets/**/*/package.json; do
         unset ERROR
         NAME=$(jq -r '.name' $f)
@@ -88,6 +90,7 @@ run:
         fi  
         if [ -z "$ERROR" ]; then
           PASSED=true
+          EXIT_CODE=0 # at least one asset passed
           mkdir -p passed/$TYPE_FOLDER/$NAME && cp -r $(dirname $f) passed/$TYPE_FOLDER/$NAME
           echo "PASSED! $ERROR"
         else
@@ -98,3 +101,4 @@ run:
         # TODO: update build-log.json
         jq ". += [{\"name\":\"$NAME\",\"type\":\"$TYPE_FOLDER\",\"version\":\"$VERSION\",\"date\":\"$(date +%s)\",\"passed\":$PASSED,\"error\":\"$ERROR\" }]" assets/build-log.json > passed/build-log.json 
       done
+      exit $EXIT_CODE
