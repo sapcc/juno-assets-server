@@ -1,0 +1,29 @@
+resource_types:
+  - name: http-resource
+    type: docker-image
+    check_every: 20m
+    source:
+      repository: keppel.eu-de-1.cloud.sap/ccloud-dockerhub-mirror/jgriff/http-resource
+      tag: latest
+
+  - name: git-proxy
+    type: registry-image
+    check_every: 24h
+    source:
+      repository: keppel.eu-de-1.cloud.sap/ccloud/concourse-git-resource-proxy
+      tag: latest
+
+  - name: time-version-resource
+    type: docker-image
+    check_every: 24h
+    source:
+      repository: keppel.eu-de-1.cloud.sap/ccloud/concourse-time-version-resource
+      tag: v2
+
+  - name: meta
+    type: docker-image
+    source:
+      repository: swce/metadata-resource
+# display:
+#   background_image: https://imgur.ksv.app/Z2gWNkb.jpg
+#   brand_color: '#5a5a5a'
