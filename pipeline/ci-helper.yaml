@@ -6,6 +6,7 @@ resources:
       username: ((registry-user/keppel-ccloud.username))
       password: ((registry-user/keppel-ccloud.password))
       repository: keppel.eu-de-1.cloud.sap/ccloud/juno-assets-server-ci-helper
+      paths: ["scripts"]
 
 groups:
   - name: ci-helper
