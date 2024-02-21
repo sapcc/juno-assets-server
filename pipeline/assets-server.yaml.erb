@@ -66,7 +66,7 @@ jobs:
         trigger: true 
 
       - task: download-from-juno-pending-assets
-        file: juno-assets-server.git/ci/pipeline/tasks/swift-download.yaml
+        file: juno-assets-server.git/pipeline/tasks/swift-download.yaml
         output_mapping:
           output: pending_assets
         params:
@@ -74,14 +74,14 @@ jobs:
           DELETE_AFTER_DOWNLOAD: "true"
 
       - task: check-integrity 
-        file: juno-assets-server.git/ci/pipeline/tasks/check-pending-assets-integrity.yaml
+        file: juno-assets-server.git/pipeline/tasks/check-pending-assets-integrity.yaml
         input_mapping:
           input: pending_assets
         output_mapping:
           output: passed_check_integrity
 
       - task: download-metadata-from-juno-final-assets
-        file: juno-assets-server.git/ci/pipeline/tasks/swift-download.yaml
+        file: juno-assets-server.git/pipeline/tasks/swift-download.yaml
         output_mapping:
           output: final_assets_metadata
         params:
@@ -89,7 +89,7 @@ jobs:
           TARGET: "manifest.json"
 
       - task: check-name-uniqueness
-        file: juno-assets-server.git/ci/pipeline/tasks/check-name-uniqueness.yaml
+        file: juno-assets-server.git/pipeline/tasks/check-name-uniqueness.yaml
         input_mapping:
           final_metadata: final_assets_metadata
           assets: passed_check_integrity
@@ -97,14 +97,14 @@ jobs:
           output: passed_check_name_uniqueness
 
       - task: generate-data-for-mount-test
-        file: juno-assets-server.git/ci/pipeline/tasks/generate-test-data.yaml
+        file: juno-assets-server.git/pipeline/tasks/generate-test-data.yaml
         input_mapping:
           pending_assets: passed_check_name_uniqueness
         output_mapping:
           test_data: test_data
 
       - task: check-asset-mountable
-        file: juno-assets-server.git/ci/pipeline/tasks/check-asset-mountable.yaml
+        file: juno-assets-server.git/pipeline/tasks/check-asset-mountable.yaml
         input_mapping:
           assets: passed_check_name_uniqueness
           test_data: test_data
@@ -115,7 +115,7 @@ jobs:
           test_results: test_results
 
       - task: upload-test-result
-        file: juno-assets-server.git/ci/pipeline/tasks/swift.yaml
+        file: juno-assets-server.git/pipeline/tasks/swift.yaml
         input_mapping:
           input: test_results
         params:
@@ -123,7 +123,7 @@ jobs:
 
 
       - task: upload-passed-and-cleanup
-        file: juno-assets-server.git/ci/pipeline/tasks/swift.yaml
+        file: juno-assets-server.git/pipeline/tasks/swift.yaml
         input_mapping:
           input: passed
         params:
