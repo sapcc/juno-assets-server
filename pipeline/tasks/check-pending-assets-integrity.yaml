@@ -43,14 +43,14 @@ run:
         # loop over keys name, repository and version
         for key in name version repository; do
           echo -ne "${BLUE}  $key ${NC}"
-          VALUE=$(grep -o "\"$key\":\\s*\"[^\"]*" $f | grep -o '[^"]*$')
+          VALUE=$(jq -r ".$key" $f)
           if [ "$key" == "version" ]; then
             VERSION=$VALUE
           fi
           # get the value of the key
           # in one line
 
-          if [ -z "$VALUE" ]; then
+          if [ "$VALUE" == "null" ]; then
             msg_error "missing"
             ERROR="${ERROR} $key is missing,"
             PASSED=false
@@ -64,12 +64,12 @@ run:
           continue
         fi
 
-        MAIN=$(grep -o '"main":\s*"[^"]*' $f | grep -o '[^"]*$')
+        MAIN=$(jq -r ".main" $f)
 
-        if [ -z $MAIN ]; then 
-          MAIN=$(grep -o '"module":\s*"[^"]*' $f | grep -o '[^"]*$')
-          if [ -z $MAIN ] || [ ! -f "./input/$TYPE/$NAME/$MAIN" ]; then
-            msg_info "  main file ${RED}missing"
+        if [ "$MAIN" == "null" ]; then 
+          MAIN=$(jq -r ".module" $f)
+          if [ "$MAIN" == "null" ] || [ ! -f "./input/$TYPE/$NAME/$MAIN" ]; then
+            msg_info "  main file ${RED}missing ($MAIN, did you forget to bundle?)"
             ERROR="${ERROR} main file is missing,"
             PASSED=false
           else
