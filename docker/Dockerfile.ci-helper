@@ -5,7 +5,7 @@ FROM keppel.eu-de-1.cloud.sap/ccloud-dockerhub-mirror/library/node:bullseye-slim
 
 LABEL source_repository="https://github.com/sapcc/juno"
 
-RUN DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install --yes git ca-certificates rsync jq python3-pip wget
+RUN DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install --yes git ca-certificates rsync jq python3-pip wget curl
 
 # https://rclone.org/downloads/
 # https://rclone.org/swift/
