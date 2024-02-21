@@ -24,6 +24,16 @@ resource_types:
     type: docker-image
     source:
       repository: swce/metadata-resource
+
+resources:
+  - name: juno-assets-server.git
+    type: git
+    icon: github
+    source:
+      uri: https://github.com/sapcc/juno-assets-server.git
+      branch: main
+      username: sapcc-bot
+      password: ((github-access-token/sapcc-bot))
 # display:
 #   background_image: https://imgur.ksv.app/Z2gWNkb.jpg
 #   brand_color: '#5a5a5a'

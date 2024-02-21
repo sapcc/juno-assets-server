@@ -1,0 +1,423 @@
+---
+jobs:
+- name: download-validate-pending-assets
+  plan:
+  - get: juno-assets-server.git
+  - get: meta
+  - get: swift-juno-pending-assets.version
+    trigger: true
+  - task: download-from-juno-pending-assets
+    file: juno-assets-server.git/ci/pipeline/tasks/swift-download.yaml
+    output_mapping:
+      output: pending_assets
+    params:
+      CONTAINER: juno-pending-assets
+      DELETE_AFTER_DOWNLOAD: 'true'
+  - task: check-integrity
+    file: juno-assets-server.git/ci/pipeline/tasks/check-pending-assets-integrity.yaml
+    input_mapping:
+      input: pending_assets
+    output_mapping:
+      output: passed_check_integrity
+  - task: download-metadata-from-juno-final-assets
+    file: juno-assets-server.git/ci/pipeline/tasks/swift-download.yaml
+    output_mapping:
+      output: final_assets_metadata
+    params:
+      CONTAINER: juno-final-assets
+      TARGET: manifest.json
+  - task: check-name-uniqueness
+    file: juno-assets-server.git/ci/pipeline/tasks/check-name-uniqueness.yaml
+    input_mapping:
+      final_metadata: final_assets_metadata
+      assets: passed_check_integrity
+    output_mapping:
+      output: passed_check_name_uniqueness
+  - task: generate-data-for-mount-test
+    file: juno-assets-server.git/ci/pipeline/tasks/generate-test-data.yaml
+    input_mapping:
+      pending_assets: passed_check_name_uniqueness
+    output_mapping:
+      test_data: test_data
+  - task: check-asset-mountable
+    file: juno-assets-server.git/ci/pipeline/tasks/check-asset-mountable.yaml
+    input_mapping:
+      assets: passed_check_name_uniqueness
+      test_data: test_data
+      meta: meta
+      juno-assets-server.git: juno-assets-server.git
+    output_mapping:
+      passed: passed_check_asset_mountable
+      test_results: test_results
+  - task: upload-test-result
+    file: juno-assets-server.git/ci/pipeline/tasks/swift.yaml
+    input_mapping:
+      input: test_results
+    params:
+      COMMAND: mkdir -p juno/pending-assets-tests && cp -r input/* juno/pending-assets-tests/
+        && swift upload --skip-identical --changed cypress juno
+  - task: upload-passed-and-cleanup
+    file: juno-assets-server.git/ci/pipeline/tasks/swift.yaml
+    input_mapping:
+      input: passed
+    params:
+      COMMAND: cd input && swift upload juno-final-assets .
+  - task: exit
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source:
+          repository: keppel.eu-de-1.cloud.sap/ccloud-dockerhub-mirror/library/node
+          tag: 18-alpine
+      run:
+        path: "/bin/sh"
+        args:
+        - "-c"
+        - 'exit 1
+
+          '
+- name: download-all-final-assets
+  plan:
+  - get: juno-assets-server.git
+    trigger: true
+    passed:
+    - download-validate-pending-assets
+  - get: assets-server.version
+- name: build-assets-server-image
+  plan:
+  - get: juno-assets-server.git
+    trigger: true
+    passed:
+    - download-all-final-assets
+- name: deploy-assets-server-to-s-qa-de-1
+  plan:
+  - get: juno-assets-server.git
+    trigger: true
+    passed:
+    - build-assets-server-image
+- name: deploy-assets-server-to-qa-de-2
+  plan:
+  - get: juno-assets-server.git
+    trigger: true
+    passed:
+    - build-assets-server-image
+- name: e2e-tests-assets-server-s-qa-de-1
+  plan:
+  - get: juno-assets-server.git
+    trigger: true
+    passed:
+    - deploy-assets-server-to-s-qa-de-1
+- name: promote-prod-assets-server
+  plan:
+  - get: juno-assets-server.git
+    trigger: false
+    passed:
+    - e2e-tests-assets-server-s-qa-de-1
+- name: deploy-assets-server-to-eu-de-1
+  plan:
+  - get: juno-assets-server.git
+    trigger: true
+    passed:
+    - promote-prod-assets-server
+- name: e2e-tests-assets-server-eu-de-1
+  plan:
+  - get: juno-assets-server.git
+    trigger: true
+    passed:
+    - deploy-assets-server-to-eu-de-1
+- name: deploy-assets-server-to-eu-de-2
+  plan:
+  - get: juno-assets-server.git
+    trigger: true
+    passed:
+    - promote-prod-assets-server
+- name: e2e-tests-assets-server-eu-de-2
+  plan:
+  - get: juno-assets-server.git
+    trigger: true
+    passed:
+    - deploy-assets-server-to-eu-de-2
+- name: deploy-assets-server-to-eu-nl-1
+  plan:
+  - get: juno-assets-server.git
+    trigger: true
+    passed:
+    - promote-prod-assets-server
+- name: e2e-tests-assets-server-eu-nl-1
+  plan:
+  - get: juno-assets-server.git
+    trigger: true
+    passed:
+    - deploy-assets-server-to-eu-nl-1
+- name: deploy-assets-server-to-ap-ae-1
+  plan:
+  - get: juno-assets-server.git
+    trigger: true
+    passed:
+    - promote-prod-assets-server
+- name: e2e-tests-assets-server-ap-ae-1
+  plan:
+  - get: juno-assets-server.git
+    trigger: true
+    passed:
+    - deploy-assets-server-to-ap-ae-1
+- name: deploy-assets-server-to-ap-jp-2
+  plan:
+  - get: juno-assets-server.git
+    trigger: true
+    passed:
+    - promote-prod-assets-server
+- name: e2e-tests-assets-server-ap-jp-2
+  plan:
+  - get: juno-assets-server.git
+    trigger: true
+    passed:
+    - deploy-assets-server-to-ap-jp-2
+- name: deploy-assets-server-to-ap-au-1
+  plan:
+  - get: juno-assets-server.git
+    trigger: true
+    passed:
+    - promote-prod-assets-server
+- name: e2e-tests-assets-server-ap-au-1
+  plan:
+  - get: juno-assets-server.git
+    trigger: true
+    passed:
+    - deploy-assets-server-to-ap-au-1
+- name: deploy-assets-server-to-la-br-1
+  plan:
+  - get: juno-assets-server.git
+    trigger: true
+    passed:
+    - promote-prod-assets-server
+- name: e2e-tests-assets-server-la-br-1
+  plan:
+  - get: juno-assets-server.git
+    trigger: true
+    passed:
+    - deploy-assets-server-to-la-br-1
+- name: deploy-assets-server-to-na-us-1
+  plan:
+  - get: juno-assets-server.git
+    trigger: true
+    passed:
+    - promote-prod-assets-server
+- name: e2e-tests-assets-server-na-us-1
+  plan:
+  - get: juno-assets-server.git
+    trigger: true
+    passed:
+    - deploy-assets-server-to-na-us-1
+- name: deploy-assets-server-to-na-us-2
+  plan:
+  - get: juno-assets-server.git
+    trigger: true
+    passed:
+    - promote-prod-assets-server
+- name: e2e-tests-assets-server-na-us-2
+  plan:
+  - get: juno-assets-server.git
+    trigger: true
+    passed:
+    - deploy-assets-server-to-na-us-2
+- name: build-ci-helper-image
+  public: true
+  plan:
+  - get: juno-assets-server.git
+    trigger: true
+  - put: ci-helper.image
+    params:
+      tag_as_latest: true
+      cache: true
+      cache_tag: latest
+      build: juno-assets-server.git
+      dockerfile: juno-assets-server.git/docker/Dockerfile.ci-helper
+- name: readme
+  serial: true
+  plan:
+  - task: describe-this-pipeline
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source:
+          repository: keppel.eu-de-1.cloud.sap/ccloud-dockerhub-mirror/library/alpine
+          tag: latest
+      run:
+        path: "/bin/echo"
+        args:
+        - "-e"
+        - "\\tThis pipeline is defined at: https://github.com/sapcc/juno-assets-server/\\n\\n"
+        - "\\tManage assets-server image: https://keppel.eu-de-1.cloud.sap/ccloud/juno-assets-server\\n"
+        - "\\tManage ci-helper image: https://keppel.eu-de-1.cloud.sap/ccloud/juno-assets-server-ci-helper\\n"
+groups:
+- name: assets-server
+  jobs:
+  - download-validate-pending-assets
+  - download-all-final-assets
+  - build-assets-server-image
+  - deploy-assets-server-to-s-qa-de-1
+  - deploy-assets-server-to-qa-de-2
+  - e2e-tests-assets-server-s-qa-de-1
+  - promote-prod-assets-server
+  - deploy-assets-server-to-eu-de-1
+  - e2e-tests-assets-server-eu-de-1
+  - deploy-assets-server-to-eu-de-2
+  - e2e-tests-assets-server-eu-de-2
+  - deploy-assets-server-to-eu-nl-1
+  - e2e-tests-assets-server-eu-nl-1
+  - deploy-assets-server-to-ap-ae-1
+  - e2e-tests-assets-server-ap-ae-1
+  - deploy-assets-server-to-ap-jp-2
+  - e2e-tests-assets-server-ap-jp-2
+  - deploy-assets-server-to-ap-au-1
+  - e2e-tests-assets-server-ap-au-1
+  - deploy-assets-server-to-la-br-1
+  - e2e-tests-assets-server-la-br-1
+  - deploy-assets-server-to-na-us-1
+  - e2e-tests-assets-server-na-us-1
+  - deploy-assets-server-to-na-us-2
+  - e2e-tests-assets-server-na-us-2
+  - download-validate-pending-assets
+  - download-all-final-assets
+  - build-assets-server-image
+  - deploy-assets-server-to-s-qa-de-1
+  - deploy-assets-server-to-qa-de-2
+  - e2e-tests-assets-server-s-qa-de-1
+  - promote-prod-assets-server
+  - deploy-assets-server-to-eu-de-1
+  - e2e-tests-assets-server-eu-de-1
+  - deploy-assets-server-to-eu-de-2
+  - e2e-tests-assets-server-eu-de-2
+  - deploy-assets-server-to-eu-nl-1
+  - e2e-tests-assets-server-eu-nl-1
+  - deploy-assets-server-to-ap-ae-1
+  - e2e-tests-assets-server-ap-ae-1
+  - deploy-assets-server-to-ap-jp-2
+  - e2e-tests-assets-server-ap-jp-2
+  - deploy-assets-server-to-ap-au-1
+  - e2e-tests-assets-server-ap-au-1
+  - deploy-assets-server-to-la-br-1
+  - e2e-tests-assets-server-la-br-1
+  - deploy-assets-server-to-na-us-1
+  - e2e-tests-assets-server-na-us-1
+  - deploy-assets-server-to-na-us-2
+  - e2e-tests-assets-server-na-us-2
+  - download-validate-pending-assets
+  - download-all-final-assets
+  - build-assets-server-image
+  - deploy-assets-server-to-s-qa-de-1
+  - deploy-assets-server-to-qa-de-2
+  - e2e-tests-assets-server-s-qa-de-1
+  - promote-prod-assets-server
+  - deploy-assets-server-to-eu-de-1
+  - e2e-tests-assets-server-eu-de-1
+  - deploy-assets-server-to-eu-de-2
+  - e2e-tests-assets-server-eu-de-2
+  - deploy-assets-server-to-eu-nl-1
+  - e2e-tests-assets-server-eu-nl-1
+  - deploy-assets-server-to-ap-ae-1
+  - e2e-tests-assets-server-ap-ae-1
+  - deploy-assets-server-to-ap-jp-2
+  - e2e-tests-assets-server-ap-jp-2
+  - deploy-assets-server-to-ap-au-1
+  - e2e-tests-assets-server-ap-au-1
+  - deploy-assets-server-to-la-br-1
+  - e2e-tests-assets-server-la-br-1
+  - deploy-assets-server-to-na-us-1
+  - e2e-tests-assets-server-na-us-1
+  - deploy-assets-server-to-na-us-2
+  - e2e-tests-assets-server-na-us-2
+  - download-validate-pending-assets
+  - download-all-final-assets
+  - build-assets-server-image
+  - deploy-assets-server-to-s-qa-de-1
+  - deploy-assets-server-to-qa-de-2
+  - e2e-tests-assets-server-s-qa-de-1
+  - promote-prod-assets-server
+  - deploy-assets-server-to-eu-de-1
+  - e2e-tests-assets-server-eu-de-1
+  - deploy-assets-server-to-eu-de-2
+  - e2e-tests-assets-server-eu-de-2
+  - deploy-assets-server-to-eu-nl-1
+  - e2e-tests-assets-server-eu-nl-1
+  - deploy-assets-server-to-ap-ae-1
+  - e2e-tests-assets-server-ap-ae-1
+  - deploy-assets-server-to-ap-jp-2
+  - e2e-tests-assets-server-ap-jp-2
+  - deploy-assets-server-to-ap-au-1
+  - e2e-tests-assets-server-ap-au-1
+  - deploy-assets-server-to-la-br-1
+  - e2e-tests-assets-server-la-br-1
+  - deploy-assets-server-to-na-us-1
+  - e2e-tests-assets-server-na-us-1
+  - deploy-assets-server-to-na-us-2
+  - e2e-tests-assets-server-na-us-2
+- name: ci-helper
+  jobs:
+  - build-ci-helper-image
+  - build-ci-helper-image
+  - build-ci-helper-image
+  - build-ci-helper-image
+- name: info
+  jobs:
+  - readme
+  - readme
+  - readme
+  - readme
+resources:
+- name: swift-juno-pending-assets.version
+  type: http-resource
+  source:
+    url: https://objectstore-3.eu-de-1.cloud.sap:443/v1/AUTH_caa6209d2c38450f8266311fd0f05446/juno-pending-assets
+    method: HEAD
+    version:
+      header: x-container-bytes-used
+- name: assets-server.version
+  type: time-version-resource
+  icon: lock
+  check_every: 525600h
+  source:
+    key: juno-assets-server-version
+- name: meta
+  type: meta
+- name: ci-helper.image
+  type: docker-image
+  icon: docker
+  source:
+    username: "((registry-user/keppel-ccloud.username))"
+    password: "((registry-user/keppel-ccloud.password))"
+    repository: keppel.eu-de-1.cloud.sap/ccloud/juno-assets-server-ci-helper
+- name: juno-assets-server.git
+  type: git
+  icon: github
+  source:
+    uri: https://github.com/sapcc/juno-assets-server.git
+    branch: main
+    username: sapcc-bot
+    password: "((github-access-token/sapcc-bot))"
+resource_types:
+- name: http-resource
+  type: docker-image
+  check_every: 20m
+  source:
+    repository: keppel.eu-de-1.cloud.sap/ccloud-dockerhub-mirror/jgriff/http-resource
+    tag: latest
+- name: git-proxy
+  type: registry-image
+  check_every: 24h
+  source:
+    repository: keppel.eu-de-1.cloud.sap/ccloud/concourse-git-resource-proxy
+    tag: latest
+- name: time-version-resource
+  type: docker-image
+  check_every: 24h
+  source:
+    repository: keppel.eu-de-1.cloud.sap/ccloud/concourse-time-version-resource
+    tag: v2
+- name: meta
+  type: docker-image
+  source:
+    repository: swce/metadata-resource

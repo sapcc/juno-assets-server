@@ -1,0 +1,28 @@
+resources:
+  - name: ci-helper.image
+    type: docker-image
+    icon: docker
+    source:
+      username: ((registry-user/keppel-ccloud.username))
+      password: ((registry-user/keppel-ccloud.password))
+      repository: keppel.eu-de-1.cloud.sap/ccloud/juno-assets-server-ci-helper
+
+groups:
+  - name: ci-helper
+    jobs:
+      - build-ci-helper-image
+
+jobs:
+  - name: build-ci-helper-image
+    public: true
+    plan:
+      - get: juno-assets-server.git
+        trigger: true
+
+      - put: ci-helper.image
+        params:
+          tag_as_latest: true
+          cache: true
+          cache_tag: "latest"
+          build: juno-assets-server.git
+          dockerfile: juno-assets-server.git/docker/Dockerfile.ci-helper
