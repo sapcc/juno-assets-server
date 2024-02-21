@@ -29,65 +29,72 @@ run:
       # 4. if the name is present in manifest.json AND the repository is the same AND the version is higher, THEN it is an update (SUCCESS)
       # 5. if the name is present in manifest.json AND the repository is the same AND the version is the same, THEN it is not allowed to be published (FAILURE)
 
+      source /ci/scripts/logger.sh
 
       # 1. check
       if [ ! -f final_metadata/manifest.json ]; then
         # initial state
-        echo "${SUCCESS}manifest.json is not present, assets are new ${NC}"
+        msg_success "manifest.json is not present, assets are new"
         cp -r assets/* passed/
         exit 0
       fi
 
       for f in assets/**/*/package.json; do
-        PASSED=true
+        unset ERROR
         NAME=$(jq -r '.name' $f)
         REPOSITORY=$(jq -r '.repository' $f)
         VERSION=$(jq -r '.version' $f)
         TYPE_FOLDER=$(basename $(dirname $(dirname $f)))
-        echo "${INFO} NAME: $NAME, REPOSITORY: $REPOSITORY, VERSION: $VERSION ${NC}"
+        msg_info "$NAME:\n  repository $REPOSITORY\n  version $VERSION"
+        msg_info "  checking..."
 
         # 2. check 
         if [ $(jq "has(\"$NAME\")" final_metadata/manifest.json) == "false" ]; then
           # initial state
-          echo "${SUCCESS}name is not present in manifest.json, asset is new ${NC}"
-          mkdir -p passed/$TYPE_FOLDER/$NAME && cp -r $(dirname $f) passed/$TYPE_FOLDER/$NAME
-          continue
-        fi
-
-
-        # 3. check
-        versions=$(jq -r ".\"$NAME\" | . [] | .version" final_metadata/manifest.json)
-        sorted_versions=$(echo "$versions" | tr ' ' '\n' | sort -t. -k1,1n -k2,2n -k3,3n -k4,4n | tr '\n' ' ')
-        latest_version=$(echo "$sorted_versions" | awk '{print $NF}')
-        latest_package=$(jq -r ".\"$NAME\".\"$latest_version\"" final_metadata/manifest.json)
-
-        LATEST_REPOSITORY=$(echo $latest_package | jq -r '.repository')
-        LATEST_VERSION=$(echo $latest_package | jq -r '.version')
-
-        if [ "$REPOSITORY" != "$LATEST_REPOSITORY" ]; then
-          echo "${FAIL}repository is different, asset is not allowed to be published ${NC}"
-          PASSED=false
-          continue
-        fi
-
-        # 4. check
-        latest_current="$LATEST_VERSION $VERSION"
-        max_version=$( echo $latest_current | tr ' ' '\n' | sort -t. -k1,1n -k2,2n -k3,3n -k4,4n | tr '\n' ' ' | awk '{print $NF}')
-        
-        if [ "$VERSION" != "$LATEST_VERSION" ] && [ "$max_version" == "$VERSION" ] ; then
-          echo "${SUCCESS}version is higher, asset is an update ${NC}"
-          mkdir -p passed/$TYPE_FOLDER/$NAME && cp -r $(dirname $f) passed/$TYPE_FOLDER/$NAME
-          continue
+          msg_success "  name is not present in manifest.json, asset is new"
         else
-          echo "version is not higher, asset is not allowed to be published"
+          # app is already in the manifest (not new)  
+          
+          # 3. check
+          versions=$(jq -r ".\"$NAME\" | . [] | .version" final_metadata/manifest.json)
+          sorted_versions=$(echo "$versions" | tr ' ' '\n' | sort -t. -k1,1n -k2,2n -k3,3n -k4,4n | tr '\n' ' ')
+          latest_version=$(echo "$sorted_versions" | awk '{print $NF}')
+          latest_package=$(jq -r ".\"$NAME\".\"$latest_version\"" final_metadata/manifest.json)
+
+          LATEST_REPOSITORY=$(echo $latest_package | jq -r '.repository')
+          LATEST_VERSION=$(echo $latest_package | jq -r '.version')
+
+          if [ "$REPOSITORY" != "$LATEST_REPOSITORY" ]; then
+            ERROR="repository is different, asset is not allowed to be published"
+            msg_error "  $ERROR"
+          else
+            # repository is the same 
+
+            # 4. check
+            latest_current="$LATEST_VERSION $VERSION"
+            max_version=$( echo $latest_current | tr ' ' '\n' | sort -t. -k1,1n -k2,2n -k3,3n -k4,4n | tr '\n' ' ' | awk '{print $NF}')
+            
+            if [ "$VERSION" != "$LATEST_VERSION" ] && [ "$max_version" == "$VERSION" ] ; then
+              msg_success "  version is higher, asset is an update"
+            elif [ "$VERSION" == "$LATEST_VERSION" ]; then
+              # 5. check
+              ERROR="version is the same, asset is not allowed to be published"
+              msg_error "  $ERROR"
+            else  
+              ERROR="version is not higher, asset is not allowed to be published"
+              msg_error "  $ERROR"
+            fi        
+          fi  
+        fi  
+        if [ -z "$ERROR" ]; then
+          PASSED=true
+          mkdir -p passed/$TYPE_FOLDER/$NAME && cp -r $(dirname $f) passed/$TYPE_FOLDER/$NAME
+          echo "PASSED! $ERROR"
+        else
           PASSED=false
-          continue  
-        fi        
-        
-        # 5. check
-        if [ "$VERSION" == "$LATEST_VERSION" ]; then
-          echo "${FAIL}version is the same, asset is not allowed to be published ${NC}"
-          PASSED=false
-          continue
+          echo "FAILED! $ERROR"
         fi
+        
+        # TODO: update build-log.json
+        jq ". += [{\"name\":\"$NAME\",\"type\":\"$TYPE_FOLDER\",\"version\":\"$VERSION\",\"date\":\"$(date +%s)\",\"passed\":$PASSED,\"error\":\"$ERROR\" }]" assets/build-log.json > passed/build-log.json 
       done
