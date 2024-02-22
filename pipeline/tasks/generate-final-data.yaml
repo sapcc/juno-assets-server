@@ -9,11 +9,11 @@ image_resource:
 
 inputs:
   # whre new apps and libs are located
-  - name: pending_assets
+  - name: assets
   - name: final_data
 outputs:
   # where the importmap, manifest and externals are written to
-  - name: test_data
+  - name: data
 
 params:
 
@@ -29,17 +29,27 @@ run:
     - -c
     - |
 
-      mkdir -p ./pending_assets/libs
-      # copy libs to pending_assets 
-      # some apps are using the libs and we need to have them in the same folder
-      for lib in final_data/libs/*; do
-        name=$(basename $lib)
-        if [ ! -d "./pending_assets/libs/${name}@latest" ]; then
-          cp -r $lib ./pending_assets/libs/"${name}@latest"
-        fi
-      done
-      cp -r pending_assets/* ./test_data/ && cd ./test_data
+      # copy current final data like externals, apps and libs to the data folder   
+      cp -r final_data/* ./data/
 
+      # copy passed assets to data (overwrite if exist and update latest). 
+      for PACKAGE in assets/**/*/package.json; do
+        NAME=$(jq -r .name $PACKAGE)
+        VERSION=$(jq -r .version $PACKAGE)
+        # dir is something like ./libs/juno-ui-components@1.1.5
+        DIR=$(dirname $PACKAGE)
+        # asset path is then ./libs
+        ASSET_PATH=$(dirname $DIR)
+        rm -rf data/$DIR
+        rm -rf data/$ASSET_PATH/$NAME@$VERSION
+        rm -rf data/$ASSET_PATH/$NAME@latest
+        mkdir -p data/$ASSET_PATH/$NAME@$VERSION 
+        cp -r $DIR/* data/$ASSET_PATH/$NAME@$VERSION/
+        mkdir -p data/$ASSET_PATH/$NAME@latest
+        cp -r $DIR/* data/$ASSET_PATH/$NAME@latest/
+      done
+
+      cd data
       # Generate importmap and manifest only for pending apps and libs
       # this step also generates the externals esm packages
       node /ci/scripts/esm_build/generate_importmap.mjs \
