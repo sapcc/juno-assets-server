@@ -104,7 +104,7 @@ run:
           PASSED=false
         fi
         
-        # TODO: update build-log.json
+        # Update build log
         jq "[.[] | select(.name != \"$NAME\")]" assets/build-log.json > tmp && mv tmp assets/build-log.json
         jq ". += [{\"name\":\"$NAME\",\"type\":\"$TYPE_FOLDER\",\"version\":\"$VERSION\",\"date\":\"$(date +%s)\",\"passed\":$PASSED,\"buildUrl\":\"$BUILD_URL\",\"error\":\"$ERROR\" }]" assets/build-log.json > passed/build-log.json 
       done

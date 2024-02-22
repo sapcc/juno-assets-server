@@ -81,13 +81,13 @@ jobs:
         output_mapping:
           output: passed_check_integrity
 
-      - task: download-metadata-from-juno-final-assets
+      - task: download-from-juno-final-assets
         file: juno-assets-server.git/pipeline/tasks/swift-download.yaml
         output_mapping:
           output: final_assets_metadata
         params:
           CONTAINER: "juno-final-assets"
-          TARGET: "manifest.json"
+          TARGET: "manifest.json libs"
 
       - task: check-name-uniqueness
         file: juno-assets-server.git/pipeline/tasks/check-name-uniqueness.yaml
@@ -96,19 +96,20 @@ jobs:
           meta: meta
           assets: passed_check_integrity
         output_mapping:
-          output: passed_check_name_uniqueness
+          output: passed_check_uniqueness
 
       - task: generate-data-for-mount-test
         file: juno-assets-server.git/pipeline/tasks/generate-test-data.yaml
         input_mapping:
-          pending_assets: passed_check_name_uniqueness
+          pending_assets: passed_check_uniqueness
+          final_metadata: final_assets_metadata
         output_mapping:
           test_data: test_data
 
       - task: check-asset-mountable
         file: juno-assets-server.git/pipeline/tasks/check-asset-mountable.yaml
         input_mapping:
-          assets: passed_check_name_uniqueness
+          assets: passed_check_uniqueness
           test_data: test_data
           meta: meta
           juno-assets-server.git: juno-assets-server.git

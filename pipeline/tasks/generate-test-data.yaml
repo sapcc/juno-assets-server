@@ -4,12 +4,13 @@ image_resource:
   type: docker-image
   source:
     # we use our own base image which contains all the necessary tools
-    repository: keppel.eu-de-1.cloud.sap/ccloud/juno-v3-base
+    repository: keppel.eu-de-1.cloud.sap/ccloud/juno-assets-server-ci-helper
     tag: "latest"
 
 inputs:
   # whre new apps and libs are located
   - name: pending_assets
+  - name: final_metadata
 outputs:
   # where the importmap, manifest and externals are written to
   - name: test_data
@@ -23,28 +24,25 @@ params:
 #    (write them to test_data)
 # 4. generate the externals esm packages (write them to test_data)
 run:
-  path: /bin/sh
+  path: /bin/bash
   args:
     - -c
     - |
-      WORKDIR=$(pwd)
-      cd /juno 
-      npm run build-libs
-      cd $WORKDIR
+
       mkdir -p ./pending_assets/libs
       # copy libs to pending_assets 
       # some apps are using the libs and we need to have them in the same folder
-      for lib in /juno/libs/*; do
-      name=$(basename $lib)
-      if [ ! -d "./pending_assets/libs/${name}@latest" ]; then
-      cp -r $lib ./pending_assets/libs/"${name}@latest"
-      fi
+      for lib in final_metadata/libs/*; do
+        name=$(basename $lib)
+        if [ ! -d "./pending_assets/libs/${name}@latest" ]; then
+          cp -r $lib ./pending_assets/libs/"${name}@latest"
+        fi
       done
       cp -r pending_assets/* ./test_data/ && cd ./test_data
 
       # Generate importmap and manifest only for pending apps and libs
       # this step also generates the externals esm packages
-      node /juno/ci/scripts/esm_build/generate_importmap.mjs \
+      node /ci/scripts/esm_build/generate_importmap.mjs \
       --node-modules-path=/tmp/ \
       --external-path=./externals \
       --exit-on-error=false \
@@ -54,7 +52,7 @@ run:
       --importmap-path=./importmap.json  \
       --verbose=false ; \
       \
-      node /juno/ci/scripts/generate_manifest.mjs \
+      node /ci/scripts/generate_manifest.mjs \
       --src=./ \
       --output=./manifest.json \
       --base-url="http://localhost:3000" \

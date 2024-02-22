@@ -14,9 +14,10 @@ jobs:
       CONTAINER: juno-pending-assets
       DELETE_AFTER_DOWNLOAD: 'true'
   - task: check-integrity
-    file: juno-assets-server.git/pipeline/tasks/check-pending-assets-integrity.yaml
+    file: juno-assets-server.git/pipeline/tasks/check-integrity.yaml
     input_mapping:
       input: pending_assets
+      meta: meta
     output_mapping:
       output: passed_check_integrity
   - task: download-metadata-from-juno-final-assets
@@ -30,6 +31,7 @@ jobs:
     file: juno-assets-server.git/pipeline/tasks/check-name-uniqueness.yaml
     input_mapping:
       final_metadata: final_assets_metadata
+      meta: meta
       assets: passed_check_integrity
     output_mapping:
       output: passed_check_name_uniqueness
@@ -390,6 +392,8 @@ resources:
     username: "((registry-user/keppel-ccloud.username))"
     password: "((registry-user/keppel-ccloud.password))"
     repository: keppel.eu-de-1.cloud.sap/ccloud/juno-assets-server-ci-helper
+    paths:
+    - scripts
 - name: juno-assets-server.git
   type: git
   icon: github

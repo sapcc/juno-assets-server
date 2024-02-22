@@ -3,11 +3,11 @@ platform: linux
 image_resource:
   type: docker-image
   source:
-    repository: keppel.eu-de-1.cloud.sap/ccloud-dockerhub-mirror/library/alpine
+    repository: keppel.eu-de-1.cloud.sap/ccloud/cypress-client
     tag: "latest"
 
 inputs:
-  - name: juno.git
+  - name: juno-assets-server.git
   - name: test_data
   - name: assets
   - name: meta
@@ -36,37 +36,35 @@ run:
 
       # 4. check if the asset can be mounted in the mount-test.html
 
-      WORKDIR=$(pwd)
-      FAIL='\033[0;31m'
-      SUCCESS='\033[0;32m'
-      INFO='\033[0;36m'
-      NC='\033[0m' # No Color
-      BUILD_NAME="$(cat meta/build-name)"
-      URL="$(cat meta/atc-external-url)/teams/$(cat meta/build-team-name)/pipelines/$(cat meta/build-pipeline-name)/jobs/$(cat meta/build-job-name)/builds/$(cat meta/build-name)"
-      BUILD_RESULTS="$WORKDIR/test_results/build-$BUILD_NAME"
-      mkdir -p "$BUILD_RESULTS"
+      source juno-assets-server.git/ci/scripts/logger.sh
 
-      echo -e "${INFO}copy e2e tests from juno.git to ./e2e ${NC}"
-      cp -r ./juno.git/e2e .
-      echo -e "${INFO}copy mount-test.html to test_data ${NC}"
-      cp ./juno.git/ci/assets-server/mount-test.html ./test_data/      
-      echo -e "${INFO}create empty build-log.json ${NC}"
-      echo '[]' > test_results/build-log.json
-      echo -e "${INFO}create serve.config.json ${NC}"
-      echo -e "${INFO}this is needed to avoid clean urls, we want to have extensions like .html ${NC}"
+      # generate build url 
+      cd meta 
+      BUILD_URL="$(cat atc-external-url)/teams/$(cat build-team-name)/pipelines/$(cat build-pipeline-name)/jobs/$(cat build-job-name)/builds/$(cat build-name)" 
+      cd ..
+
+      msg_info "copy e2e tests from juno-assets-server.git to ./e2e"
+      cp -r ./juno-assets-server.git/e2e .
+      msg_info "copy mount-test.html to test_data"
+      cp ./juno-assets-server.git/ci/assets-server/mount-test.html ./test_data/      
+      msg_info "create serve.config.json"
+      msg_info "this is needed to avoid clean urls, we want to have extensions like .html"
       echo '{"cleanUrls": false}' > /tmp/serve.config.json
-      echo -e "${INFO}run server in test_data ${NC}"
+      msg_info "run server in test_data"
       serve ./test_data -n -u -p 3000 -c /tmp/serve.config.json & sleep 3 
 
-      echo -e "${INFO}=== RUN MOUNT TESTS ===\n ${NC}"
+      msg_info "=== RUN MOUNT TESTS ===\n"
+      EXIT_CODE=1
+
       cd e2e
+
       # loop over assets in pending_assets to avoid unnesseray tests                
       for f in ../assets/**/*/package.json; do 
         NAME=$(cat $f | jq -r '.name') 
         VERSION=$(cat $f | jq -r '.version') 
         TYPE_FOLDER=$(basename $(dirname $(dirname $f)))
         ASSET_TEST_RESULTS="$BUILD_RESULTS/$TYPE_FOLDER/$NAME@$VERSION"
-        echo -e "${INFO}===TEST $NAME@$VERSION ($TYPE_FOLDER)${NC}" 
+        msg_info "===TEST $NAME@$VERSION ($TYPE_FOLDER)" 
 
         cypress run --spec "cypress/integration/assets-server/mount_asset.spec.js" \
         --browser chrome \
@@ -76,14 +74,23 @@ run:
         # Check the exit status of the cp command 
         if [ $? -eq 0 ]; then 
           STATUS="passed"
+          EXIT_CODE=0
           mkdir -p "../passed/$TYPE_FOLDER" && \
           cp -r $(dirname $f) "../passed/$TYPE_FOLDER/$NAME@$VERSION" 
         else 
           STATUS="failed"
-          echo -e "${INFO}===RESULT: $NAME@$VERSION $STATUS ${NC}"
+          ERROR="mount test failed"
+          msg_info "===RESULT: $NAME@$VERSION $STATUS"
         fi
-        jq --arg n "$NAME" --arg v "$VERSION" --arg s "$STATUS" --arg l "$URL" \
-        '. += [{"name": $n, "version": $v, "status": $s, "log": $l}]' "$ASSET_TEST_RESULTS/build-log.json" > "$ASSET_TEST_RESULTS/build-log.json.temp" 
-        mv "$ASSET_TEST_RESULTS/build-log.json.temp" "$ASSET_TEST_RESULTS/build-log.json" 
+
+       # Update build log
+        jq "[.[] | select(.name != \"$NAME\")]" assets/build-log.json > tmp && mv tmp assets/build-log.json
+        jq ". += [{\"name\":\"$NAME\",\"type\":\"$TYPE_FOLDER\",\"version\":\"$VERSION\",\"date\":\"$(date +%s)\",\"passed\":$PASSED,\"buildUrl\":\"$BUILD_URL\",\"error\":\"$ERROR\" }]" assets/build-log.json > passed/build-log.json 
       done
-      exit 0
+
+      if [ $EXIT_CODE -eq 0 ]; then 
+        msg_info "=== AT LEAST ONE MOUNT TEST PASSED ===\n"
+      else 
+        msg_error "=== ALL MOUNT TESTS FAILED ===\n"
+      fi
+      exit $EXIT_CODE
