@@ -74,9 +74,10 @@ jobs:
           DELETE_AFTER_DOWNLOAD: "true"
 
       - task: check-integrity 
-        file: juno-assets-server.git/pipeline/tasks/check-pending-assets-integrity.yaml
+        file: juno-assets-server.git/pipeline/tasks/check-integrity.yaml
         input_mapping:
           input: pending_assets
+          meta: meta
         output_mapping:
           output: passed_check_integrity
 
@@ -92,6 +93,7 @@ jobs:
         file: juno-assets-server.git/pipeline/tasks/check-name-uniqueness.yaml
         input_mapping:
           final_metadata: final_assets_metadata
+          meta: meta
           assets: passed_check_integrity
         output_mapping:
           output: passed_check_name_uniqueness

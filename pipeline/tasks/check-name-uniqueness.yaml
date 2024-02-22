@@ -9,6 +9,7 @@ image_resource:
 inputs:
   - name: assets
   - name: final_metadata
+  - name: meta
 outputs:
   - name: passed
   - name: test_results
@@ -31,6 +32,11 @@ run:
 
       source /ci/scripts/logger.sh
 
+      # generate build url 
+      cd meta 
+      BUILD_URL="$(cat atc-external-url)/teams/$(cat build-team-name)/pipelines/$(cat build-pipeline-name)/jobs/$(cat build-job-name)/builds/$(cat build-name)" 
+      cd ..
+
       # 1. check
       if [ ! -f final_metadata/manifest.json ]; then
         # initial state
@@ -47,8 +53,10 @@ run:
         REPOSITORY=$(jq -r '.repository' $f)
         VERSION=$(jq -r '.version' $f)
         TYPE_FOLDER=$(basename $(dirname $(dirname $f)))
-        msg_info "$NAME:\n  repository $REPOSITORY\n  version $VERSION"
-        msg_info "  checking..."
+        msg_info "$NAME:"
+        msg_info "  repository ${GREEN}$REPOSITORY"
+        msg_info "  version ${GREEN}$VERSION"
+        msg_success "  checking..."
 
         # 2. check 
         if [ $(jq "has(\"$NAME\")" final_metadata/manifest.json) == "false" ]; then
@@ -98,6 +106,12 @@ run:
         
         # TODO: update build-log.json
         jq "[.[] | select(.name != \"$NAME\")]" assets/build-log.json > tmp && mv tmp assets/build-log.json
-        jq ". += [{\"name\":\"$NAME\",\"type\":\"$TYPE_FOLDER\",\"version\":\"$VERSION\",\"date\":\"$(date +%s)\",\"passed\":$PASSED,\"error\":\"$ERROR\" }]" assets/build-log.json > passed/build-log.json 
+        jq ". += [{\"name\":\"$NAME\",\"type\":\"$TYPE_FOLDER\",\"version\":\"$VERSION\",\"date\":\"$(date +%s)\",\"passed\":$PASSED,\"buildUrl\":\"$BUILD_URL\",\"error\":\"$ERROR\" }]" assets/build-log.json > passed/build-log.json 
       done
+
+      if [ $EXIT_CODE -eq 0 ]; then
+        msg_success "At least one asset has passed"
+      else
+        msg_error "No assets have passed"
+      fi
       exit $EXIT_CODE

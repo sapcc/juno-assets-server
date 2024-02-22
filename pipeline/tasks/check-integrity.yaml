@@ -8,6 +8,7 @@ image_resource:
 
 inputs:
   - name: input
+  - name: meta
 outputs:
   - name: output # where do you want to download
 
@@ -23,6 +24,11 @@ run:
     - |
       source /ci/scripts/logger.sh
       EXIT_CODE=1 # error
+
+      # generate build url 
+      cd meta 
+      BUILD_URL="$(cat atc-external-url)/teams/$(cat build-team-name)/pipelines/$(cat build-pipeline-name)/jobs/$(cat build-job-name)/builds/$(cat build-name)" 
+      cd ..
 
       # create the build-log file 
       rm -f output/build-log.json && touch output/build-log.json && jq -n '[]' > output/build-log.json
@@ -85,7 +91,7 @@ run:
           msg_error "  FAILED"
         fi
 
-        jq ". += [{\"name\":\"$NAME\",\"type\":\"$TYPE\",\"version\":\"$VERSION\",\"date\":\"$(date +%s)\",\"passed\":$PASSED,\"error\":\"$ERROR\" }]" output/build-log.json > tmp.json && mv tmp.json output/build-log.json 
+        jq ". += [{\"name\":\"$NAME\",\"type\":\"$TYPE\",\"version\":\"$VERSION\",\"date\":\"$(date +%s)\",\"passed\":$PASSED,\"buildUrl\":\"$BUILD_URL\",\"error\":\"$ERROR\" }]" output/build-log.json > tmp.json && mv tmp.json output/build-log.json 
       done
 
       # exit with the code 
