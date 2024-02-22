@@ -92,10 +92,8 @@ run:
           PASSED=true
           EXIT_CODE=0 # at least one asset passed
           mkdir -p passed/$TYPE_FOLDER/$NAME && cp -r $(dirname $f) passed/$TYPE_FOLDER/$NAME
-          echo "PASSED! $ERROR"
         else
           PASSED=false
-          echo "FAILED! $ERROR"
         fi
         
         # TODO: update build-log.json
