@@ -1,12 +1,12 @@
 import fs from "fs"
 import path from "path"
 import child_process from "child_process"
-import esbuild from "esbuild"
+import https from "node:https"
+import esbuild from "/usr/local/lib/node_modules/esbuild/lib/main.js"
+import * as glob from "/usr/local/lib/node_modules/glob/dist/esm/index.js"
+import semver from "/usr/local/lib/node_modules/semver/index.js"
 import cjsToEsm from "./cjs_to_esm_esbuild_plugin.js"
 import requireToImport from "./require_to_import_esbuild_plugin.js"
-import glob from "glob"
-import https from "node:https"
-import semver from "semver"
 import { green, red, yellow, blue, cyan } from "./colors.mjs"
 
 function log(...args) {
