@@ -23,6 +23,14 @@ resources:
       version: 
         header: x-container-bytes-used
 
+  - name: swift-juno-final-assets.version
+    type: http-resource
+    source:
+      url: https://objectstore-3.eu-de-1.cloud.sap:443/v1/AUTH_caa6209d2c38450f8266311fd0f05446/juno-final-assets
+      method: HEAD
+      version: 
+        header: x-container-bytes-used        
+
   - name: assets-server.version
     type: time-version-resource
     icon: lock
@@ -53,8 +61,7 @@ resources:
 groups: 
   - name: assets-server 
     jobs:
-      - download-validate-pending-assets
-      - download-all-final-assets
+      - validate-pending-assets
       - build-assets-server-image
       - deploy-assets-server-to-s-qa-de-1
       - deploy-assets-server-to-qa-de-2
@@ -66,7 +73,7 @@ groups:
       <% end %> 
 
 jobs:
-  - name: download-validate-pending-assets
+  - name: validate-pending-assets
     plan:
       - get: juno-assets-server.git
       - get: meta  
@@ -162,52 +169,56 @@ jobs:
               - |
                 exit 0
 
-  - name: download-all-final-assets
-    file: juno-assets-server.git/pipeline/tasks/swift-download.yaml
-    output_mapping:
-      output: final_assets
-    params:
-      CONTAINER: "juno-final-assets"
-
   - name: build-assets-server-image
     plan:
-    - get: juno-assets-server.git
-      trigger: true
-      passed: [download-all-final-assets]
+      - get: juno-assets-server.git
+        passed: [validate-pending-assets]
+      - get: swift-juno-final-assets.version
+        trigger: true
 
-    - task: describe-this-pipeline
-      config:
-        platform: "linux"
-        image_resource:
-          type: docker-image
-          source:
-            repository: keppel.eu-de-1.cloud.sap/ccloud-dockerhub-mirror/library/alpine
-            tag: latest
-        inputs:
-          - name: final_assets
-          - name: juno-assets-server.git
-        outputs:
-          - name: build_context    
-        run:
-          path: /bin/sh
-          args:
-            - -c
-            - |
-              # exit on error
-              set -e
-              cp -r final_assets/* build_context/assets
-              cp -r juno-assets-server.git/templates/* build_context/templates
-    - put: assets-server.image
-      params:
-        tag_as_latest: true
-        cache: true
-        cache_tag: "latest"
-        # root for docker build, its using the output dir from the step before
-        build: build_context
-        dockerfile: juno-assets-server.git/docker/Dockerfile.assets.server
-        tag: assets-server.version/version
-      get_params:
-        skip_download: true
+      - put: assets-server.version
+      
+      - task: download-all-final-assets
+        file: juno-assets-server.git/pipeline/tasks/swift-download.yaml
+        output_mapping:
+          output: final_assets
+        params:
+          CONTAINER: "juno-final-assets"
+
+      - task: prepare-build-context
+        config:
+          platform: "linux"
+          image_resource:
+            type: docker-image
+            source:
+              repository: keppel.eu-de-1.cloud.sap/ccloud-dockerhub-mirror/library/alpine
+              tag: latest
+          inputs:
+            - name: final_assets
+            - name: juno-assets-server.git
+          outputs:
+            - name: build_context    
+          run:
+            path: /bin/sh
+            args:
+              - -c
+              - |
+                # exit on error
+                set -e
+                cp -r final_assets/* build_context/assets
+                cp -r juno-assets-server.git/templates/* build_context/templates
+                
+      - put: assets-server.image
+        params:
+          tag_as_latest: true
+          cache: true
+          cache_tag: "latest"
+          # root for docker build, its using the output dir from the step before
+          build: build_context
+          dockerfile: juno-assets-server.git/docker/Dockerfile.assets.server
+          tag: assets-server.version/version
+        get_params:
+          skip_download: true
 
   - name: deploy-assets-server-to-s-qa-de-1
     plan:

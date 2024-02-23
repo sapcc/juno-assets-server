@@ -1,6 +1,6 @@
 ---
 jobs:
-- name: download-validate-pending-assets
+- name: validate-pending-assets
   plan:
   - get: juno-assets-server.git
   - get: meta
@@ -83,22 +83,55 @@ jobs:
         path: "/bin/sh"
         args:
         - "-c"
-        - 'exit 1
+        - 'exit 0
 
           '
-- name: download-all-final-assets
-  plan:
-  - get: juno-assets-server.git
-    trigger: true
-    passed:
-    - download-validate-pending-assets
-  - get: assets-server.version
 - name: build-assets-server-image
   plan:
   - get: juno-assets-server.git
-    trigger: true
     passed:
-    - download-all-final-assets
+    - validate-pending-assets
+  - get: swift-juno-final-assets.version
+    trigger: true
+  - put: assets-server.version
+  - task: download-all-final-assets
+    file: juno-assets-server.git/pipeline/tasks/swift-download.yaml
+    output_mapping:
+      output: final_assets
+    params:
+      CONTAINER: juno-final-assets
+  - task: prepare-build-context
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source:
+          repository: keppel.eu-de-1.cloud.sap/ccloud-dockerhub-mirror/library/alpine
+          tag: latest
+      inputs:
+      - name: final_assets
+      - name: juno-assets-server.git
+      outputs:
+      - name: build_context
+      run:
+        path: "/bin/sh"
+        args:
+        - "-c"
+        - |
+          # exit on error
+          set -e
+          cp -r final_assets/* build_context/assets
+          cp -r juno-assets-server.git/templates/* build_context/templates
+  - put: assets-server.image
+    params:
+      tag_as_latest: true
+      cache: true
+      cache_tag: latest
+      build: build_context
+      dockerfile: juno-assets-server.git/docker/Dockerfile.assets.server
+      tag: assets-server.version/version
+    get_params:
+      skip_download: true
 - name: deploy-assets-server-to-s-qa-de-1
   plan:
   - get: juno-assets-server.git
@@ -264,8 +297,7 @@ jobs:
 groups:
 - name: assets-server
   jobs:
-  - download-validate-pending-assets
-  - download-all-final-assets
+  - validate-pending-assets
   - build-assets-server-image
   - deploy-assets-server-to-s-qa-de-1
   - deploy-assets-server-to-qa-de-2
@@ -289,8 +321,7 @@ groups:
   - e2e-tests-assets-server-na-us-1
   - deploy-assets-server-to-na-us-2
   - e2e-tests-assets-server-na-us-2
-  - download-validate-pending-assets
-  - download-all-final-assets
+  - validate-pending-assets
   - build-assets-server-image
   - deploy-assets-server-to-s-qa-de-1
   - deploy-assets-server-to-qa-de-2
@@ -314,8 +345,7 @@ groups:
   - e2e-tests-assets-server-na-us-1
   - deploy-assets-server-to-na-us-2
   - e2e-tests-assets-server-na-us-2
-  - download-validate-pending-assets
-  - download-all-final-assets
+  - validate-pending-assets
   - build-assets-server-image
   - deploy-assets-server-to-s-qa-de-1
   - deploy-assets-server-to-qa-de-2
@@ -339,8 +369,7 @@ groups:
   - e2e-tests-assets-server-na-us-1
   - deploy-assets-server-to-na-us-2
   - e2e-tests-assets-server-na-us-2
-  - download-validate-pending-assets
-  - download-all-final-assets
+  - validate-pending-assets
   - build-assets-server-image
   - deploy-assets-server-to-s-qa-de-1
   - deploy-assets-server-to-qa-de-2
@@ -384,6 +413,13 @@ resources:
     method: HEAD
     version:
       header: x-container-bytes-used
+- name: swift-juno-final-assets.version
+  type: http-resource
+  source:
+    url: https://objectstore-3.eu-de-1.cloud.sap:443/v1/AUTH_caa6209d2c38450f8266311fd0f05446/juno-final-assets
+    method: HEAD
+    version:
+      header: x-container-bytes-used
 - name: assets-server.version
   type: time-version-resource
   icon: lock
@@ -392,6 +428,13 @@ resources:
     key: juno-assets-server-version
 - name: meta
   type: meta
+- name: assets-server.image
+  type: docker-image
+  icon: docker
+  source:
+    username: "((registry-user/keppel-ccloud.username))"
+    password: "((registry-user/keppel-ccloud.password))"
+    repository: keppel.eu-de-1.cloud.sap/ccloud/juno-v4-assets-server
 - name: ci-helper.image
   type: docker-image
   icon: docker
