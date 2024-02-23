@@ -186,7 +186,6 @@ jobs:
         passed: [validate-pending-assets]
       - get: swift-juno-final-assets.version
         trigger: true
-
       - put: assets-server.version
       
       - task: download-all-final-assets
@@ -216,8 +215,9 @@ jobs:
               - |
                 # exit on error
                 set -e
-                mkdir -p build_context/assets && cp -r final_assets/* build_context/assets
-                mkdir -p build_context/templates && cp -r juno-assets-server.git/templates/* build_context/templates
+                mkdir -p build_context/assets && cp -r final_assets/* build_context/assets/
+                mkdir -p build_context/templates && cp -r juno-assets-server.git/templates/* build_context/templates/
+                exit 0
                 
       - put: assets-server.image
         params:
