@@ -50,8 +50,8 @@ run:
       --base-url="http://localhost:3000" \
       --ignore-externals=false \
       --importmap-path=./importmap.json  \
-      --verbose=false ; \
-      \
+      --verbose=false 
+
       node /ci/scripts/generate_manifest.mjs \
       --src=./ \
       --output=./manifest.json \

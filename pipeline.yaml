@@ -23,14 +23,13 @@ jobs:
   - task: download-from-juno-final-assets
     file: juno-assets-server.git/pipeline/tasks/swift-download.yaml
     output_mapping:
-      output: final_assets_metadata
+      output: final_assets_data
     params:
       CONTAINER: juno-final-assets
-      TARGET: manifest.json libs
   - task: check-name-uniqueness
     file: juno-assets-server.git/pipeline/tasks/check-name-uniqueness.yaml
     input_mapping:
-      final_metadata: final_assets_metadata
+      final_data: final_assets_data
       meta: meta
       assets: passed_check_integrity
     output_mapping:
@@ -39,7 +38,7 @@ jobs:
     file: juno-assets-server.git/pipeline/tasks/generate-test-data.yaml
     input_mapping:
       pending_assets: passed_check_uniqueness
-      final_metadata: final_assets_metadata
+      final_data: final_assets_data
     output_mapping:
       test_data: test_data
   - task: check-asset-mountable
@@ -52,19 +51,26 @@ jobs:
     output_mapping:
       passed: passed_check_asset_mountable
       test_results: test_results
-  - task: upload-test-result
-    file: juno-assets-server.git/pipeline/tasks/swift.yaml
+  - task: upload-ui-test-result
+    file: juno-assets-server.git/pipeline/tasks/swift-upload.yaml
     input_mapping:
       input: test_results
     params:
-      COMMAND: mkdir -p juno/pending-assets-tests && cp -r input/* juno/pending-assets-tests/
-        && swift upload --skip-identical --changed cypress juno
-  - task: upload-passed-and-cleanup
-    file: juno-assets-server.git/pipeline/tasks/swift.yaml
+      CONTAINER: cypress
+      TARGET: juno/pending-assets-tests
+  - task: generate-final-data
+    file: juno-assets-server.git/pipeline/tasks/generate-test-data.yaml
     input_mapping:
-      input: passed
+      assets: passed_check_asset_mountable
+      final_data: final_assets_data
+    output_mapping:
+      data: final_data
+  - task: upload-to-final
+    file: juno-assets-server.git/pipeline/tasks/swift-upload.yaml
+    input_mapping:
+      input: final_data
     params:
-      COMMAND: cd input && swift upload juno-final-assets .
+      CONTAINER: juno-final-assets
   - task: exit
     config:
       platform: linux
