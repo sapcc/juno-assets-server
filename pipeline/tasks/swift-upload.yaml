@@ -30,4 +30,4 @@ run:
       mkdir -p "/tmp/input/${TARGET}"
       cp -r input/* "/tmp/input/${TARGET}/"
       cd "/tmp/input"
-      swift upload "${CONTAINER}" . &> /dev/null
+      swift upload "${CONTAINER}" . 
