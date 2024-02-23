@@ -182,7 +182,8 @@ jobs:
   - name: build-assets-server-image
     plan:
       - get: juno-assets-server.git
-
+      - get: meta  
+        passed: [validate-pending-assets]
       - get: swift-juno-final-assets.version
         trigger: true
 
