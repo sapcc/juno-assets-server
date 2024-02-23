@@ -31,6 +31,16 @@ resources:
       version: 
         header: x-container-bytes-used        
 
+  - name: juno-assets-server.git
+    type: git
+    icon: github
+    source:
+      uri: https://github.com/sapcc/juno-assets-server.git
+      branch: main
+      username: sapcc-bot
+      password: ((github-access-token/sapcc-bot))
+
+
   - name: assets-server.version
     type: time-version-resource
     icon: lock
@@ -172,7 +182,7 @@ jobs:
   - name: build-assets-server-image
     plan:
       - get: juno-assets-server.git
-        passed: [validate-pending-assets]
+
       - get: swift-juno-final-assets.version
         trigger: true
 

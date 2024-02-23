@@ -89,8 +89,6 @@ jobs:
 - name: build-assets-server-image
   plan:
   - get: juno-assets-server.git
-    passed:
-    - validate-pending-assets
   - get: swift-juno-final-assets.version
     trigger: true
   - put: assets-server.version
@@ -120,8 +118,8 @@ jobs:
         - |
           # exit on error
           set -e
-          cp -r final_assets/* build_context/assets
-          cp -r juno-assets-server.git/templates/* build_context/templates
+          mkdir -p build_context/assets && cp -r final_assets/* build_context/assets
+          mkdir -p build_context/templates && cp -r juno-assets-server.git/templates/* build_context/templates
   - put: assets-server.image
     params:
       tag_as_latest: true
@@ -267,15 +265,15 @@ jobs:
 - name: build-ci-helper-image
   public: true
   plan:
-  - get: juno-assets-server.git
+  - get: juno-assets-server-ci.git
     trigger: true
   - put: ci-helper.image
     params:
       tag_as_latest: true
       cache: true
       cache_tag: latest
-      build: juno-assets-server.git
-      dockerfile: juno-assets-server.git/docker/Dockerfile.ci-helper
+      build: juno-assets-server-ci.git
+      dockerfile: juno-assets-server-ci.git/docker/Dockerfile.ci-helper
 - name: readme
   serial: true
   plan:
@@ -420,6 +418,14 @@ resources:
     method: HEAD
     version:
       header: x-container-bytes-used
+- name: juno-assets-server.git
+  type: git
+  icon: github
+  source:
+    uri: https://github.com/sapcc/juno-assets-server.git
+    branch: main
+    username: sapcc-bot
+    password: "((github-access-token/sapcc-bot))"
 - name: assets-server.version
   type: time-version-resource
   icon: lock
@@ -442,9 +448,7 @@ resources:
     username: "((registry-user/keppel-ccloud.username))"
     password: "((registry-user/keppel-ccloud.password))"
     repository: keppel.eu-de-1.cloud.sap/ccloud/juno-assets-server-ci-helper
-    paths:
-    - scripts
-- name: juno-assets-server.git
+- name: juno-assets-server-ci.git
   type: git
   icon: github
   source:
@@ -452,6 +456,8 @@ resources:
     branch: main
     username: sapcc-bot
     password: "((github-access-token/sapcc-bot))"
+    paths:
+    - scripts
 resource_types:
 - name: http-resource
   type: docker-image

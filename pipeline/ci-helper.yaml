@@ -6,7 +6,17 @@ resources:
       username: ((registry-user/keppel-ccloud.username))
       password: ((registry-user/keppel-ccloud.password))
       repository: keppel.eu-de-1.cloud.sap/ccloud/juno-assets-server-ci-helper
-      paths: ["scripts"]
+
+  - name: juno-assets-server-ci.git
+    type: git
+    icon: github
+    source:
+      uri: https://github.com/sapcc/juno-assets-server.git
+      branch: main
+      username: sapcc-bot
+      password: ((github-access-token/sapcc-bot))
+      paths:
+        - scripts
 
 groups:
   - name: ci-helper
@@ -17,7 +27,7 @@ jobs:
   - name: build-ci-helper-image
     public: true
     plan:
-      - get: juno-assets-server.git
+      - get: juno-assets-server-ci.git
         trigger: true
 
       - put: ci-helper.image
@@ -25,5 +35,5 @@ jobs:
           tag_as_latest: true
           cache: true
           cache_tag: "latest"
-          build: juno-assets-server.git
-          dockerfile: juno-assets-server.git/docker/Dockerfile.ci-helper
+          build: juno-assets-server-ci.git
+          dockerfile: juno-assets-server-ci.git/docker/Dockerfile.ci-helper
