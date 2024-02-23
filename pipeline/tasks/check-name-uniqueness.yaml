@@ -98,7 +98,7 @@ run:
         if [ -z "$ERROR" ]; then
           PASSED=true
           EXIT_CODE=0 # at least one asset passed
-          mkdir -p passed/$TYPE_FOLDER/$NAME && cp -r $(dirname $f) passed/$TYPE_FOLDER/
+          mkdir -p passed/$TYPE_FOLDER/$NAME && cp -r $(dirname $f) passed/$TYPE_FOLDER/$NAME/
         else
           PASSED=false
         fi

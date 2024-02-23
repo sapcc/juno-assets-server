@@ -46,7 +46,7 @@ run:
       msg_info "copy e2e tests from juno-assets-server.git to ./e2e"
       cp -r ./juno-assets-server.git/e2e .
       msg_info "copy mount-test.html to test_data"
-      cp ./juno-assets-server.git/assets-server/mount-test.html ./test_data/      
+      cp ./juno-assets-server.git/templates/mount-test.html ./test_data/      
       msg_info "create serve.config.json"
       msg_info "this is needed to avoid clean urls, we want to have extensions like .html"
       echo '{"cleanUrls": false}' > /tmp/serve.config.json
@@ -56,9 +56,10 @@ run:
       msg_info "=== RUN MOUNT TESTS ===\n"
       EXIT_CODE=1
 
-      package_json_files=$(find assets -type f -name package.json)
 
       cd e2e
+      package_json_files=$(find ../assets -type f -name package.json)
+
       # loop over assets in pending_assets to avoid unnesseray tests                
       for f in $package_json_files; do 
         NAME=$(cat $f | jq -r '.name') 

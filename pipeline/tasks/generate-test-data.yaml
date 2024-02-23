@@ -29,16 +29,39 @@ run:
     - -c
     - |
 
-      mkdir -p ./pending_assets/libs
-      # copy libs to pending_assets 
-      # some apps are using the libs and we need to have them in the same folder
-      for lib in final_data/libs/*; do
-        name=$(basename $lib)
-        if [ ! -d "./pending_assets/libs/${name}@latest" ]; then
-          cp -r $lib ./pending_assets/libs/"${name}@latest"
+      # MERGE libs from final build and pending_assets
+      mkdir -p /tmp/pending_assets && cp -r pending_assets/* /tmp/pending_assets
+
+      # it is possible that some apps are using the libs and we need to have them in the same folder
+      # it is also possible that new libs are in pending assets
+      # so we need to copy this libs first to test_data
+      # the folder name is name@version
+      if [ -d "/tmp/pending_assets/libs" ]; then
+        package_json_files=$(find /tmp/pending_assets/libs -type f -name package.json)
+        if [ -n "$package_json_files" ]; then
+          for f in package_json_files; do
+            name=$(jq -r '.name' $f)
+            version=$(jq -r '.version' $f)
+            mkdir -p ./test_data/libs/"${name}@${version}
+            mkdir -p ./test_data/libs/"${name}@latest
+
+            cp -r $(dirname $f) ./test_data/libs/"${name}@${version}/
+            cp -r $(dirname $f) ./test_data/libs/"${name}@latest/
+          done
         fi
+        # remove the libs folder from pending_assets
+        rm -rf /tmp/pending_assets/libs
+      fi
+      # copy the rest of the pending_assets to test_data
+      cp -r /tmp/pending_assets/* ./test_data/
+
+      # copy libs from final build to test_data
+      for l in final_data/libs/*; do
+        name=$(basename $l)
+        if [ -d "./test_data/libs/${name}" ]; then continue; fi
+        cp -r $l ./test_data/libs/${name}
       done
-      cp -r pending_assets/* ./test_data/ && cd ./test_data
+      # DONE  
 
       # Generate importmap and manifest only for pending apps and libs
       # this step also generates the externals esm packages

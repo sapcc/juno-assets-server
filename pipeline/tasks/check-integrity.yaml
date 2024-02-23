@@ -86,7 +86,7 @@ run:
         if $PASSED; then 
           msg_success "  PASSED"
           EXIT_CODE=0 # success, we have at least one valid asset
-          mkdir -p ./output/$TYPE/$NAME && cp -r $(dirname $f) ./output/$TYPE/
+          mkdir -p ./output/$TYPE/$NAME && cp -r $(dirname $f) ./output/$TYPE/$NAME/
         else 
           msg_error "  FAILED"
         fi

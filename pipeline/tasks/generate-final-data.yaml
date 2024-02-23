@@ -31,6 +31,9 @@ run:
 
       # copy current final data like externals, apps and libs to the data folder   
       cp -r final_data/* ./data/
+      cp -r assets/build-log.json ./data/
+      # do it once
+      rm -rf data/externals/npm:*
 
       # copy passed assets to data (overwrite if exist and update latest). 
       for PACKAGE in assets/**/*/package.json; do
@@ -66,4 +69,5 @@ run:
       --src=./ \
       --output=./manifest.json \
       --base-url="http://localhost:3000" \
+      --assets-build-log=./build-log.json \
       --verbose=false
