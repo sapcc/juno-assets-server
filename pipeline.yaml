@@ -59,7 +59,7 @@ jobs:
       CONTAINER: cypress
       TARGET: juno/pending-assets-tests
   - task: generate-final-data
-    file: juno-assets-server.git/pipeline/tasks/generate-test-data.yaml
+    file: juno-assets-server.git/pipeline/tasks/generate-final-data.yaml
     input_mapping:
       assets: passed_check_asset_mountable
       final_data: final_assets_data

@@ -76,7 +76,7 @@ run:
           MAIN=$(jq -r ".module" $f)
           if [ "$MAIN" == "null" ] || [ ! -f "./input/$TYPE/$NAME/$MAIN" ]; then
             msg_info "  main file ${RED}missing ($MAIN, did you forget to bundle?)"
-            ERROR="${ERROR} main file is missing,"
+            ERROR="${ERROR} main file is missing ($MAIN, did you forget to bundle?),"
             PASSED=false
           else
             msg_info "  main file ${GREEN}$MAIN"  
@@ -91,7 +91,7 @@ run:
           msg_error "  FAILED"
         fi
 
-        jq ". += [{\"name\":\"$NAME\",\"type\":\"$TYPE\",\"version\":\"$VERSION\",\"date\":\"$(date +%s)\",\"passed\":$PASSED,\"buildUrl\":\"$BUILD_URL\",\"error\":\"$ERROR\" }]" output/build-log.json > tmp.json && mv tmp.json output/build-log.json 
+        jq ". += [{\"name\":\"$NAME\",\"type\":\"$TYPE\",\"version\":\"$VERSION\",\"date\":\"$(date +%s)\",\"passed\":$PASSED,\"buildUrl\":\"$BUILD_URL\",\"check\":\"integrity\",\"error\":\"$ERROR\" }]" output/build-log.json > tmp.json && mv tmp.json output/build-log.json 
       done
 
       # exit with the code 

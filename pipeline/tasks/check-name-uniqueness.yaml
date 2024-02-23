@@ -105,7 +105,7 @@ run:
         
         # Update build log
         jq "[.[] | select(.name != \"$NAME\")]" assets/build-log.json > tmp && mv tmp assets/build-log.json
-        jq ". += [{\"name\":\"$NAME\",\"type\":\"$TYPE_FOLDER\",\"version\":\"$VERSION\",\"date\":\"$(date +%s)\",\"passed\":$PASSED,\"buildUrl\":\"$BUILD_URL\",\"error\":\"$ERROR\" }]" assets/build-log.json > passed/build-log.json 
+        jq ". += [{\"name\":\"$NAME\",\"type\":\"$TYPE_FOLDER\",\"version\":\"$VERSION\",\"date\":\"$(date +%s)\",\"passed\":$PASSED,\"buildUrl\":\"$BUILD_URL\",\"check\":\"uniqueness\",\"error\":\"$ERROR\" }]" assets/build-log.json > passed/build-log.json 
       done
 
       if [ $EXIT_CODE -eq 0 ]; then
