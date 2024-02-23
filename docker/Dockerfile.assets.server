@@ -5,7 +5,7 @@ LABEL source_repository="https://github.com/sapcc/juno-assets-server"
 ARG BASE_URL_PLACEHOLDER="%BASE_URL%"
 
 # delete default html files of nginx
-RUN rm -rf /usr/share/nginx/html 
+RUN rm -rf /usr/share/nginx/html && mkdir -p /usr/share/nginx/html
 # copy tls certificate and key
 # COPY --from=base /tmp/tls.crt /tmp/tls.key /etc/ssl/juno/ 
 # create self signed dummy certificate and key
