@@ -22,7 +22,7 @@ RUN mkdir -p /root/.config/rclone/ && echo '\
 ARG SWIFT_CLIENT_VERSION="3.9.0"
 RUN pip3 --no-cache-dir install python-swiftclient==${SWIFT_CLIENT_VERSION} python-keystoneclient
 
-RUN npm i -g npm@latest glob serve esbuild semver
+RUN npm i -g npm@latest glob serve esbuild semver json2md
 
 # this is used later in shared tasks to get access to ci scripts
 ADD scripts /ci/scripts 

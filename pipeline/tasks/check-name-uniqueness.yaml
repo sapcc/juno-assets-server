@@ -55,7 +55,7 @@ run:
         msg_info "$NAME:"
         msg_info "  repository ${GREEN}$REPOSITORY"
         msg_info "  version ${GREEN}$VERSION"
-        msg_success "  checking..."
+        msg_default "  checking..."
 
         # 2. check 
         if [ $(jq "has(\"$NAME\")" final_data/manifest.json) == "false" ]; then

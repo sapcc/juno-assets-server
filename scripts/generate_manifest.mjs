@@ -1,7 +1,7 @@
 import { execSync } from "node:child_process"
 
 // const glob = await import(`${root}/glob/glob.js`).then((m) => m.default)
-import glob from "glob"
+import * as glob from "/usr/local/lib/node_modules/glob/dist/esm/index.js"
 import fs from "fs"
 import path from "path"
 import url from "url"

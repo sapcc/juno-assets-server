@@ -1,7 +1,7 @@
-import glob from "glob"
+import * as glob from "/usr/local/lib/node_modules/glob/dist/esm/index.js"
 import path from "path"
 import fs from "fs"
-import json2md from "json2md"
+import json2md from "/usr/local/lib/node_modules/json2md/dist/json2md.min.js"
 
 const DIRNAME = path.dirname(process.argv[1])
 
