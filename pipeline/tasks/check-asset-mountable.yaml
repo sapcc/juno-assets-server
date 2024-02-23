@@ -36,7 +36,7 @@ run:
 
       # 4. check if the asset can be mounted in the mount-test.html
 
-      source juno-assets-server.git/ci/scripts/logger.sh
+      source juno-assets-server.git/scripts/logger.sh
 
       # generate build url 
       cd meta 
@@ -46,7 +46,7 @@ run:
       msg_info "copy e2e tests from juno-assets-server.git to ./e2e"
       cp -r ./juno-assets-server.git/e2e .
       msg_info "copy mount-test.html to test_data"
-      cp ./juno-assets-server.git/ci/assets-server/mount-test.html ./test_data/      
+      cp ./juno-assets-server.git/assets-server/mount-test.html ./test_data/      
       msg_info "create serve.config.json"
       msg_info "this is needed to avoid clean urls, we want to have extensions like .html"
       echo '{"cleanUrls": false}' > /tmp/serve.config.json
@@ -56,10 +56,11 @@ run:
       msg_info "=== RUN MOUNT TESTS ===\n"
       EXIT_CODE=1
 
-      cd e2e
+      package_json_files=$(find assets -type f -name package.json)
 
+      cd e2e
       # loop over assets in pending_assets to avoid unnesseray tests                
-      for f in ../assets/**/*/package.json; do 
+      for f in $package_json_files; do 
         NAME=$(cat $f | jq -r '.name') 
         VERSION=$(cat $f | jq -r '.version') 
         TYPE_FOLDER=$(basename $(dirname $(dirname $f)))
@@ -76,7 +77,7 @@ run:
           STATUS="passed"
           EXIT_CODE=0
           mkdir -p "../passed/$TYPE_FOLDER" && \
-          cp -r $(dirname $f) "../passed/$TYPE_FOLDER/$NAME@$VERSION" 
+          cp -r $(dirname $f) "../passed/$TYPE_FOLDER/$NAME@$VERSION/" 
         else 
           STATUS="failed"
           ERROR="mount test failed"

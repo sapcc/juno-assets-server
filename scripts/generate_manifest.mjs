@@ -33,7 +33,6 @@ for (let arg of args) {
   const match = arg.match(/^-{1,2}([^=]+)=?(.*)/)
   if (match) {
     let key = match[1].replace(/\W+(.)/g, function (match, chr) {
-      console.log(match, chr)
       return chr.toUpperCase()
     })
 
@@ -67,11 +66,8 @@ if (fs.existsSync(`${rootPath}/global/README.md`)) {
   manifest["_global"]["readme"] = "/global/README.md"
 }
 
-console.log("=========================MANIFEST1")
-
 // add passed and failed assets from build log to global
 if (options.assetsBuildLog && fs.existsSync(options.assetsBuildLog)) {
-  console.log("=========================MANIFEST2")
   manifest["_global"]["assetsBuildLog"] = JSON.parse(
     fs.readFileSync(options.assetsBuildLog, "utf-8")
   )
@@ -149,7 +145,7 @@ if (options.verbose || options.v) {
   console.log(JSON.stringify(manifest, null, 2))
 }
 
-console.log("===", path.resolve(options.output))
+console.log("Write to:", path.resolve(options.output))
 fs.writeFileSync(
   path.resolve(options.output),
   JSON.stringify(manifest, null, 2)
