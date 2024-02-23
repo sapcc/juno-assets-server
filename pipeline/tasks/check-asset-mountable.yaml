@@ -40,8 +40,12 @@ run:
 
       # generate build url 
       cd meta 
+      BUILD_NAME="$(cat build-name)"
       BUILD_URL="$(cat atc-external-url)/teams/$(cat build-team-name)/pipelines/$(cat build-pipeline-name)/jobs/$(cat build-job-name)/builds/$(cat build-name)" 
       cd ..
+
+      BUILD_RESULTS="$(pwd)/test_results/build-$BUILD_NAME"
+      mkdir -p "$BUILD_RESULTS"
 
       msg_info "copy e2e tests from juno-assets-server.git to ./e2e"
       cp -r ./juno-assets-server.git/e2e .
@@ -75,19 +79,19 @@ run:
 
         # Check the exit status of the cp command 
         if [ $? -eq 0 ]; then 
-          STATUS="passed"
+          PASSED="true"
           EXIT_CODE=0
           mkdir -p "../passed/$TYPE_FOLDER" && \
           cp -r $(dirname $f) "../passed/$TYPE_FOLDER/$NAME@$VERSION/" 
         else 
-          STATUS="failed"
+          PASSED="false"
           ERROR="mount test failed"
-          msg_info "===RESULT: $NAME@$VERSION $STATUS"
+          msg_info "===RESULT: $NAME@$VERSION $PASSED"
         fi
 
-       # Update build log
-        jq "[.[] | select(.name != \"$NAME\")]" assets/build-log.json > tmp && mv tmp assets/build-log.json
-        jq ". += [{\"name\":\"$NAME\",\"type\":\"$TYPE_FOLDER\",\"version\":\"$VERSION\",\"date\":\"$(date +%s)\",\"passed\":$PASSED,\"buildUrl\":\"$BUILD_URL\",\"error\":\"$ERROR\" }]" assets/build-log.json > passed/build-log.json 
+        # Update build log
+        jq "[.[] | select(.name != \"$NAME\")]" ../assets/build-log.json > /tmp/log.json && mv /tmp/log.json ../assets/build-log.json
+        jq ". += [{\"name\":\"$NAME\",\"type\":\"$TYPE_FOLDER\",\"version\":\"$VERSION\",\"date\":\"$(date +%s)\",\"passed\":$PASSED,\"buildUrl\":\"$BUILD_URL\",\"error\":\"$ERROR\" }]" ../assets/build-log.json > ../passed/build-log.json 
       done
 
       if [ $EXIT_CODE -eq 0 ]; then 

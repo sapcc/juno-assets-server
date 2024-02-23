@@ -26,9 +26,8 @@ run:
     - -c
     - |
       set -e
-      env
       eval "$(swift auth)"
-      mkdir -p "/tmp/input${TARGET}"
-      cp -r "${input}" "/tmp/input${TARGET}"
+      mkdir -p "/tmp/input/${TARGET}"
+      cp -r input/* "/tmp/input/${TARGET}/"
       cd "/tmp/input"
       swift upload "${CONTAINER}" . &> /dev/null
