@@ -11,6 +11,7 @@ inputs:
   # whre new apps and libs are located
   - name: assets
   - name: final_data
+  - name: juno-assets-server.git
 outputs:
   # where the importmap, manifest and externals are written to
   - name: data
@@ -32,6 +33,8 @@ run:
       # copy current final data like externals, apps and libs to the data folder   
       cp -r final_data/* ./data/
       cp -r assets/build-log.json ./data/
+
+      mkdir -p data/global && cp -r juno-assets-server.git/README.md ./data/global/
       # do it once
       rm -rf data/externals/npm:*
 

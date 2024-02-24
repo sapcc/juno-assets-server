@@ -27,7 +27,9 @@ run:
     - |
       set -e
       eval "$(swift auth)"
+      OUTPUT=/tmp/log.txt
       mkdir -p "/tmp/input/${TARGET}"
       cp -r input/* "/tmp/input/${TARGET}/"
       cd "/tmp/input"
-      swift upload "${CONTAINER}" . 
+      swift upload "${CONTAINER}" . &>> $OUTPUT
+      cat $OUTPUT 2>&- || false
