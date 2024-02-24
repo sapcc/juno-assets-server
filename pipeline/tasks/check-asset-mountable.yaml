@@ -91,6 +91,5 @@ run:
         jq "[.[] | select(.name != \"$NAME\")]" ../passed/build-log.json > /tmp/log.json
         jq ". += [{\"name\":\"$NAME\",\"type\":\"$TYPE_FOLDER\",\"version\":\"$VERSION\",\"date\":\"$(date +%s)\",\"passed\":$PASSED,\"buildUrl\":\"$BUILD_URL\",\"check\":\"mountable\",\"error\":\"$ERROR\" }]" /tmp/log.json > ../passed/build-log.json 
       done
-      cd ...
 
       exit 0
