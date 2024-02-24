@@ -36,7 +36,7 @@ run:
 
       # 4. check if the asset can be mounted in the mount-test.html
 
-      source juno-assets-server.git/scripts/logger.sh
+      . juno-assets-server.git/scripts/logger.sh
 
       # generate build url 
       cd meta 

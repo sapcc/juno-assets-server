@@ -30,13 +30,14 @@ run:
     - -c
     - |
 
+      mkdir -p /tmp/data
       # copy current final data like externals, apps and libs to the data folder   
-      cp -r final_data/* ./data/
-      cp -r assets/build-log.json ./data/
+      cp -r final_data/* /tmp/data/
+      cp -r assets/build-log.json /tmp/data/
 
-      mkdir -p data/global && cp -r juno-assets-server.git/README.md ./data/global/
+      mkdir -p /tmp/data/global && cp -r juno-assets-server.git/README.md /tmp/data/global/
       # do it once
-      rm -rf data/externals/npm:*
+      rm -rf /tmp/data/externals/npm:*
 
       # copy passed assets to data (overwrite if exist and update latest). 
       for PACKAGE in assets/**/*/package.json; do
@@ -46,16 +47,16 @@ run:
         DIR=$(dirname $PACKAGE)
         # asset path is then ./libs
         ASSET_PATH=$(dirname $DIR)
-        rm -rf data/$DIR
-        rm -rf data/$ASSET_PATH/$NAME@$VERSION
-        rm -rf data/$ASSET_PATH/$NAME@latest
-        mkdir -p data/$ASSET_PATH/$NAME@$VERSION 
-        cp -r $DIR/* data/$ASSET_PATH/$NAME@$VERSION/
-        mkdir -p data/$ASSET_PATH/$NAME@latest
-        cp -r $DIR/* data/$ASSET_PATH/$NAME@latest/
+        rm -rf /tmp/data/$DIR
+        rm -rf /tmp/data/$ASSET_PATH/$NAME@$VERSION
+        rm -rf /tmp/data/$ASSET_PATH/$NAME@latest
+        mkdir -p /tmp/data/$ASSET_PATH/$NAME@$VERSION 
+        cp -r $DIR/* /tmp/data/$ASSET_PATH/$NAME@$VERSION/
+        mkdir -p /tmp/data/$ASSET_PATH/$NAME@latest
+        cp -r $DIR/* /tmp/data/$ASSET_PATH/$NAME@latest/
       done
 
-      cd data
+      cd /tmp/data
       # Generate importmap and manifest only for pending apps and libs
       # this step also generates the externals esm packages
       node /ci/scripts/esm_build/generate_importmap.mjs \
@@ -74,3 +75,10 @@ run:
       --base-url="%BASE_URL%" \
       --assets-build-log=./build-log.json \
       --verbose=false
+
+      # Performance boost:
+      # consider only the pending apps and libs
+      # coppy all generated files in /tmp/data to data and remove apps and libs
+      cp -r /tmp/data/* data/ && rm -rf data/apps && rm -rf data/libs
+      # copy apps and libs from assets to data
+      cp -r assets/apps data/
