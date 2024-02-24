@@ -47,7 +47,7 @@ run:
       EXIT_CODE=1
 
       package_json_files=$(find ./assets -type f -name package.json)
-      for f in package_json_files; do
+      for f in $package_json_files; do
         unset ERROR
         NAME=$(jq -r '.name' $f)
         REPOSITORY=$(jq -r '.repository' $f)

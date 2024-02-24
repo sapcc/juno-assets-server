@@ -33,7 +33,7 @@ run:
       # create the build-log file 
       rm -f output/build-log.json && touch output/build-log.json && jq -n '[]' > output/build-log.json
       package_json_files=$(find ./input -type f -name package.json)
-      for f in package_json_files; do
+      for f in $package_json_files; do
         ERROR=""
         PASSED=true
         NAME=$(basename $(dirname $f))
