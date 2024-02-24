@@ -44,8 +44,6 @@ run:
         exit 0
       fi
 
-      EXIT_CODE=1
-
       package_json_files=$(find ./assets -type f -name package.json)
       for f in $package_json_files; do
         unset ERROR
@@ -98,8 +96,7 @@ run:
         fi  
         if [ -z "$ERROR" ]; then
           PASSED=true
-          EXIT_CODE=0 # at least one asset passed
-          mkdir -p passed/$TYPE_FOLDER/$NAME && cp -r $(dirname $f) passed/$TYPE_FOLDER/$NAME/
+          mkdir -p passed/$TYPE_FOLDER/$NAME && cp -r $(dirname $f)/* passed/$TYPE_FOLDER/$NAME/
         else
           PASSED=false
         fi
@@ -109,10 +106,4 @@ run:
         jq ". += [{\"name\":\"$NAME\",\"type\":\"$TYPE_FOLDER\",\"version\":\"$VERSION\",\"date\":\"$(date +%s)\",\"passed\":$PASSED,\"buildUrl\":\"$BUILD_URL\",\"check\":\"uniqueness\",\"error\":\"$ERROR\" }]" assets/build-log.json > passed/build-log.json 
       done
 
-      if [ $EXIT_CODE -eq 0 ]; then
-        msg_success "At least one asset has passed"
-      else
-        msg_error "No assets have passed"
-      fi
-      # exit $EXIT_CODE
       exit 0

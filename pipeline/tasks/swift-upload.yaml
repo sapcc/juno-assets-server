@@ -28,7 +28,6 @@ run:
     - |
       set -e
       eval "$(swift auth)"
-      OUTPUT=/tmp/log.txt
 
       if [ "${OVERWRITE}" == "true" ]; then
         files=$(ls -A input/)
@@ -37,7 +36,7 @@ run:
           if [ -n "${TARGET}" ]; then
             PREFIX="${TARGET}/${PREFIX}"
           fi
-          swift delete "${CONTAINER}" --prefix "${PREFIX}" &>> $OUTPUT || true
+          swift delete "${CONTAINER}" --prefix "${PREFIX}"
         done      
       fi
 
@@ -50,6 +49,4 @@ run:
         cd input  
       fi
 
-
-      swift upload "${CONTAINER}" . &>> $OUTPUT
-      cat $OUTPUT 2>&- || false
+      swift upload "${CONTAINER}" .

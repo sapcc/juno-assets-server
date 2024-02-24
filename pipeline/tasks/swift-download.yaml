@@ -29,16 +29,14 @@ run:
       # TODO: Implement DELETE_AFTER_DOWNLOAD 
       set -e
       eval "$(swift auth)"
-      OUTPUT=/tmp/log.txt
       cd ./output
       if [ -n "$TARGET" ]; then
-      # loop over targets
-      for T in $TARGET; do
-        PATH_ARG="$(if [ -n "$T" ]; then echo "-p $T"; fi)"
-        echo $PATH_ARG
-        swift download $OPTIONS $CONTAINER $PATH_ARG &>> $OUTPUT
-      done
+        # loop over targets
+        for T in $TARGET; do
+          PATH_ARG="$(if [ -n "$T" ]; then echo "-p $T"; fi)"
+          echo $PATH_ARG
+          swift download $OPTIONS $CONTAINER $PATH_ARG
+        done
       else
-        swift download $OPTIONS $CONTAINER &>> $OUTPUT
+        swift download $OPTIONS $CONTAINER
       fi
-      cat $OUTPUT 2>&- || false

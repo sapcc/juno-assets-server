@@ -47,6 +47,7 @@ run:
       BUILD_RESULTS="$(pwd)/test_results/build-$BUILD_NAME"
       mkdir -p "$BUILD_RESULTS"
 
+      cp assets/build-log.json passed/build-log.json
       msg_info "copy e2e tests from juno-assets-server.git to ./e2e"
       cp -r ./juno-assets-server.git/e2e .
       msg_info "copy mount-test.html to test_data"
@@ -58,8 +59,6 @@ run:
       serve ./test_data -n -u -p 3000 -c /tmp/serve.config.json & sleep 3 
 
       msg_info "=== RUN MOUNT TESTS ===\n"
-      EXIT_CODE=1
-
 
       cd e2e
       package_json_files=$(find ../assets -type f -name package.json)
@@ -80,9 +79,8 @@ run:
         # Check the exit status of the cp command 
         if [ $? -eq 0 ]; then 
           PASSED="true"
-          EXIT_CODE=0
           mkdir -p "../passed/$TYPE_FOLDER" && \
-          cp -r $(dirname $f) "../passed/$TYPE_FOLDER/$NAME@$VERSION/" 
+          cp -r $(dirname $f)/* "../passed/$TYPE_FOLDER/$NAME@$VERSION/" 
         else 
           PASSED="false"
           ERROR="mount test failed"
@@ -90,14 +88,9 @@ run:
         fi
 
         # Update build log
-        jq "[.[] | select(.name != \"$NAME\")]" ../assets/build-log.json > /tmp/log.json && mv /tmp/log.json ../assets/build-log.json
-        jq ". += [{\"name\":\"$NAME\",\"type\":\"$TYPE_FOLDER\",\"version\":\"$VERSION\",\"date\":\"$(date +%s)\",\"passed\":$PASSED,\"buildUrl\":\"$BUILD_URL\",\"check\":\"mountable\",\"error\":\"$ERROR\" }]" ../assets/build-log.json > ../passed/build-log.json 
+        jq "[.[] | select(.name != \"$NAME\")]" ../passed/build-log.json > /tmp/log.json
+        jq ". += [{\"name\":\"$NAME\",\"type\":\"$TYPE_FOLDER\",\"version\":\"$VERSION\",\"date\":\"$(date +%s)\",\"passed\":$PASSED,\"buildUrl\":\"$BUILD_URL\",\"check\":\"mountable\",\"error\":\"$ERROR\" }]" /tmp/log.json > ../passed/build-log.json 
       done
+      cd ...
 
-      if [ $EXIT_CODE -eq 0 ]; then 
-        msg_info "=== AT LEAST ONE MOUNT TEST PASSED ===\n"
-      else 
-        msg_error "=== ALL MOUNT TESTS FAILED ===\n"
-      fi
-      # exit $EXIT_CODE
       exit 0

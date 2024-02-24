@@ -30,6 +30,7 @@ run:
     - -c
     - |
 
+      WORKDIR=$(pwd) 
       mkdir -p /tmp/data
       # copy current final data like externals, apps and libs to the data folder   
       cp -r final_data/* /tmp/data/
@@ -79,6 +80,6 @@ run:
       # Performance boost:
       # consider only the pending apps and libs
       # coppy all generated files in /tmp/data to data and remove apps and libs
-      cp -r /tmp/data/* data/ && rm -rf data/apps && rm -rf data/libs
+      cp -r /tmp/data/* $WORKDIR/data/ && rm -rf $WORKDIR/data/apps && rm -rf $WORKDIR/data/libs
       # copy apps and libs from assets to data
-      cp -r assets/apps data/
+      cp -r assets/apps $WORKDIR/data/
