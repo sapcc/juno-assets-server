@@ -40,8 +40,9 @@ run:
       # do it once
       rm -rf /tmp/data/externals/npm:*
 
+      package_json_files=$(find $WORKDIR/assets/ -name package.json) 
       # copy passed assets to data (overwrite if exist and update latest). 
-      for PACKAGE in assets/**/*/package.json; do
+      for PACKAGE in $package_json_files; do
         NAME=$(jq -r .name $PACKAGE)
         VERSION=$(jq -r .version $PACKAGE)
         # dir is something like ./libs/juno-ui-components@1.1.5
@@ -61,7 +62,6 @@ run:
 
       # Performance boost:
       # only if any package.json file exists in the assets folder 
-      package_json_files=$(find $WORKDIR/assets/ -name package.json)
       if [ -n "$package_json_files" ]; then
         # Generate importmap and manifest only for pending apps and libs
         # this step also generates the externals esm packages
@@ -88,4 +88,4 @@ run:
       # coppy all generated files in /tmp/data to data and remove apps and libs
       cp -r /tmp/data/* $WORKDIR/data/ && rm -rf $WORKDIR/data/apps && rm -rf $WORKDIR/data/libs
       # copy apps and libs from assets to data
-      cp -r $WORKDIR/assets/apps $WORKDIR/data/
+      cp -r $WORKDIR/assets/apps $WORKDIR/assets/libs $WORKDIR/data/ &>/dev/null || true
