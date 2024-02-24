@@ -61,6 +61,7 @@ jobs:
   - task: generate-final-data
     file: juno-assets-server.git/pipeline/tasks/generate-final-data.yaml
     input_mapping:
+      juno-assets-server.git: juno-assets-server.git
       assets: passed_check_asset_mountable
       final_data: final_assets_data
     output_mapping:
@@ -92,7 +93,6 @@ jobs:
   - get: meta
     passed:
     - validate-pending-assets
-  - get: swift-juno-final-assets.version
     trigger: true
   - put: assets-server.version
   - task: download-all-final-assets
@@ -412,13 +412,6 @@ resources:
   type: http-resource
   source:
     url: https://objectstore-3.eu-de-1.cloud.sap:443/v1/AUTH_caa6209d2c38450f8266311fd0f05446/juno-pending-assets
-    method: HEAD
-    version:
-      header: x-container-bytes-used
-- name: swift-juno-final-assets.version
-  type: http-resource
-  source:
-    url: https://objectstore-3.eu-de-1.cloud.sap:443/v1/AUTH_caa6209d2c38450f8266311fd0f05446/juno-final-assets
     method: HEAD
     version:
       header: x-container-bytes-used
