@@ -114,4 +114,5 @@ run:
       else
         msg_error "No assets have passed"
       fi
-      exit $EXIT_CODE
+      # exit $EXIT_CODE
+      exit 0

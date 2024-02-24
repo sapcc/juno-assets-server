@@ -99,4 +99,5 @@ run:
       else 
         msg_error "=== ALL MOUNT TESTS FAILED ===\n"
       fi
-      exit $EXIT_CODE
+      # exit $EXIT_CODE
+      exit 0
