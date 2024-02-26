@@ -64,7 +64,7 @@ run:
       # DONE  
 
       # speed up the build by copying the externals from final_data
-      cp -r final_data/externals ./test_data/
+      # cp -r final_data/externals ./test_data/
       cd test_data
 
       # Generate importmap and manifest only for pending apps and libs
