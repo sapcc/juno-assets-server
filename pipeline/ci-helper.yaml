@@ -15,8 +15,7 @@ resources:
       branch: main
       username: sapcc-bot
       password: ((github-access-token/sapcc-bot))
-      paths:
-        - scripts
+      paths: ["scripts"]
 
 groups:
   - name: ci-helper

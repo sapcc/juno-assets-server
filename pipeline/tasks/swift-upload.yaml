@@ -13,7 +13,6 @@ params:
   CONTAINER:
   OPTIONS:
   TARGET: ""
-  OVERWRITE: "false"
   OS_USERNAME: concourse
   OS_PASSWORD: ((keystone-user-password/concourse-eu-de-1))
   OS_AUTH_URL: https://identity-3.eu-de-1.cloud.sap/v3
@@ -28,17 +27,6 @@ run:
     - |
       set -e
       eval "$(swift auth)"
-
-      if [ "${OVERWRITE}" == "true" ]; then
-        files=$(ls -A input/)
-        for file in $files; do
-          PREFIX=$(echo "${file}" | cut -d'/' -f1)
-          if [ -n "${TARGET}" ]; then
-            PREFIX="${TARGET}/${PREFIX}"
-          fi
-          swift delete "${CONTAINER}" --prefix "${PREFIX}"
-        done      
-      fi
 
       # create a subfolder if Target not empty
       if [ -n "${TARGET}" ]; then
