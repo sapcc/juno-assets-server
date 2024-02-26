@@ -36,6 +36,10 @@ run:
       cp -r final_data/* /tmp/data/
       cp -r assets/build-log.json /tmp/data/
 
+      # delete externals 
+      # TODO: remove it later
+      rm -rf /tmp/data/externals
+
       mkdir -p /tmp/data/global && cp -r juno-assets-server.git/README.md /tmp/data/global/
 
       package_json_files=$(find $WORKDIR/assets/ -name package.json) 
