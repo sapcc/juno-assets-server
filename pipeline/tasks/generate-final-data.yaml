@@ -37,8 +37,6 @@ run:
       cp -r assets/build-log.json /tmp/data/
 
       mkdir -p /tmp/data/global && cp -r juno-assets-server.git/README.md /tmp/data/global/
-      # do it once
-      rm -rf /tmp/data/externals/npm:*
 
       package_json_files=$(find $WORKDIR/assets/ -name package.json) 
       # copy passed assets to data (overwrite if exist and update latest). 
@@ -62,7 +60,10 @@ run:
 
       # Performance boost:
       # only if any package.json file exists in the assets folder 
-      # if [ -n "$package_json_files" ]; then
+      if [ -n "$package_json_files" ]; then
+        # do it once
+        # rm -rf /tmp/data/externals/npm:*
+
         # Generate importmap and manifest only for pending apps and libs
         # this step also generates the externals esm packages
         node /ci/scripts/esm_build/generate_importmap.mjs \
@@ -81,7 +82,7 @@ run:
         --base-url="%BASE_URL%" \
         --assets-build-log=./build-log.json \
         --verbose=false
-      # fi
+      fi
 
       # Performance boost:
       # consider only the pending apps and libs
