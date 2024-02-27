@@ -12,7 +12,6 @@ inputs:
 params:
   CONTAINER:
   OPTIONS:
-  TARGET: ""
   OS_USERNAME: concourse
   OS_PASSWORD: ((keystone-user-password/concourse-eu-de-1))
   OS_AUTH_URL: https://identity-3.eu-de-1.cloud.sap/v3
@@ -28,13 +27,12 @@ run:
       set -e
       eval "$(swift auth)"
 
-      # create a subfolder if Target not empty
-      if [ -n "${TARGET}" ]; then
-        mkdir -p "/tmp/input/${TARGET}"
-        cp -r input/* "/tmp/input/${TARGET}/"
-        cd "/tmp/input"
-      else
-        cd input  
-      fi
+      cd input
+      package_json_files=$(ls {apps,libs}/**/package.json)
+      for package_json in $package_json_files; do
+        echo "Deleting parent directory of $package_json"
+        dir=$(dirname $package_json)
+        swift delete "${CONTAINER}" --prefix "${dir}/"
+      done
 
       swift upload "${CONTAINER}" .

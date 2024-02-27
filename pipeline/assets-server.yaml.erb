@@ -151,7 +151,7 @@ jobs:
           data: final_data
 
       - task: upload-to-final
-        file: juno-assets-server.git/pipeline/tasks/swift-upload.yaml
+        file: juno-assets-server.git/pipeline/tasks/swift-upload-final-assets.yaml
         input_mapping:
           input: final_data
         params:
