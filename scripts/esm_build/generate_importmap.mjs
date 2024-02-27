@@ -8,6 +8,7 @@
 
 import * as glob from "/usr/local/lib/node_modules/glob/dist/esm/index.js"
 import semverGt from "/usr/local/lib/node_modules/semver/functions/gt.js"
+import semverCoerce from "/usr/local/lib/node_modules/semver/functions/coerce.js"
 import fs from "fs"
 import pathLib from "path"
 import url from "url"
@@ -115,7 +116,10 @@ for (let file of files) {
 
   // if the current version is greater than the latest, update the latest
   let latest = packageRegistry[pkg.name]["latest"] || { version: "0.0.0" }
-  if (semverGt(version, latest.version))
+  if (
+    version === "latest" ||
+    semverGt(semverCoerce(version), semverCoerce(latest.version))
+  )
     packageRegistry[pkg.name]["latest"] = {
       ...packageRegistry[pkg.name][version],
     }

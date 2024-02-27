@@ -3,6 +3,7 @@ import { execSync } from "node:child_process"
 // const glob = await import(`${root}/glob/glob.js`).then((m) => m.default)
 import * as glob from "/usr/local/lib/node_modules/glob/dist/esm/index.js"
 import semverGt from "/usr/local/lib/node_modules/semver/functions/gt.js"
+import semverCoerce from "/usr/local/lib/node_modules/semver/functions/coerce.js"
 import fs from "fs"
 import path from "path"
 import url from "url"
@@ -121,7 +122,10 @@ files.sort().forEach(async (file) => {
 
   // replace latest with the actual version greater than the current one
   const latest = manifest[pkg.name]["latest"] || { version: "0.0.0" }
-  if (semverGt(version, latest.version)) {
+  if (
+    version === "latest" ||
+    semverGt(semverCoerce(version), semverCoerce(latest.version))
+  ) {
     manifest[pkg.name]["latest"] = { ...manifest[pkg.name][version] }
   }
 
