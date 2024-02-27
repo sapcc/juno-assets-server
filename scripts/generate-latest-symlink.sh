@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 if [ ! -f "./manifest.json" ]; then
   echo "ERROR: no ./manifest.json found!"

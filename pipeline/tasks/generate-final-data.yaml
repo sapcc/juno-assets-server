@@ -91,4 +91,4 @@ run:
         /tmp/data/global \
         $WORKDIR/assets/apps \
         $WORKDIR/assets/libs \
-        $WORKDIR/assets/build-log.json $WORKDIR/data/
+        $WORKDIR/assets/build-log.json $WORKDIR/data/ > /dev/null 2>&1
