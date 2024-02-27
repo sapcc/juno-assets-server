@@ -79,7 +79,7 @@ run:
         # Check the exit status of the cp command 
         if [ $? -eq 0 ]; then 
           PASSED="true"
-          mkdir -p "../passed/$TYPE_FOLDER" && \
+          mkdir -p "../passed/$TYPE_FOLDER/$NAME@$VERSION" && \
           cp -r $(dirname $f)/* "../passed/$TYPE_FOLDER/$NAME@$VERSION/" 
         else 
           PASSED="false"
