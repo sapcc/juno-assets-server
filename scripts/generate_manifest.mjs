@@ -2,6 +2,7 @@ import { execSync } from "node:child_process"
 
 // const glob = await import(`${root}/glob/glob.js`).then((m) => m.default)
 import * as glob from "/usr/local/lib/node_modules/glob/dist/esm/index.js"
+import semverGt from "/usr/local/lib/node_modules/semver/functions/gt.js"
 import fs from "fs"
 import path from "path"
 import url from "url"
@@ -94,7 +95,7 @@ files.sort().forEach(async (file) => {
   } catch (e) {
     console.log(e)
   }
-  let version = path.indexOf("@latest") > 0 ? "latest" : pkg.version
+  let version = pkg.version
 
   manifest[pkg.name] = manifest[pkg.name] || {}
   manifest[pkg.name][version] = {
@@ -116,6 +117,12 @@ files.sort().forEach(async (file) => {
     keywords: pkg.keywords || [],
     license: pkg.license,
     repository: pkg.repository,
+  }
+
+  // replace latest with the actual version greater than the current one
+  const latest = manifest[pkg.name]["latest"] || { version: "0.0.0" }
+  if (semverGt(version, latest.version)) {
+    manifest[pkg.name]["latest"] = { ...manifest[pkg.name][version] }
   }
 
   if (fs.existsSync(`${rootPath}/${path}/README.md`)) {

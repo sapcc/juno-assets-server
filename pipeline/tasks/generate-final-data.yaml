@@ -91,6 +91,7 @@ run:
       # Performance boost:
       # consider only the pending apps and libs
       # coppy all generated files in /tmp/data to data and remove apps and libs
-      cp -r /tmp/data/* $WORKDIR/data/ && rm -rf $WORKDIR/data/apps && rm -rf $WORKDIR/data/libs
+      cp /tmp/data/importmap.json $WORKDIR/data/
+      cp /tmp/data/manifest.json $WORKDIR/data/
       # copy apps and libs from assets to data
       cp -r $WORKDIR/assets/apps $WORKDIR/assets/libs $WORKDIR/data/ &>/dev/null || true

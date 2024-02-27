@@ -7,6 +7,7 @@
  */
 
 import * as glob from "/usr/local/lib/node_modules/glob/dist/esm/index.js"
+import semverGt from "/usr/local/lib/node_modules/semver/functions/gt.js"
 import fs from "fs"
 import pathLib from "path"
 import url from "url"
@@ -100,10 +101,9 @@ for (let file of files) {
   const entryFile = pkg.module || pkg.main || "index.js"
   const entryDir = entryFile.slice(0, entryFile.lastIndexOf("/") + 1) || "/"
   const path = file.replace(pathRegex, "$1")
-  const version = path.indexOf("@latest") > 0 ? "latest" : pkg.version
+  const version = pkg.version
 
   packageRegistry[pkg.name] = packageRegistry[pkg.name] || {}
-
   packageRegistry[pkg.name][version] = {
     name: pkg.name,
     version,
@@ -112,6 +112,13 @@ for (let file of files) {
     entryDir,
     peerDependencies: options.ignoreExternals ? false : pkg.peerDependencies,
   }
+
+  // if the current version is greater than the latest, update the latest
+  let latest = packageRegistry[pkg.name]["latest"] || { version: "0.0.0" }
+  if (semverGt(version, latest.version))
+    packageRegistry[pkg.name]["latest"] = {
+      ...packageRegistry[pkg.name][version],
+    }
 }
 
 // initialize an empty importmap
