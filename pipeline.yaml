@@ -123,6 +123,7 @@ jobs:
           set -e
           mkdir -p build_context/assets && cp -r final_assets/* build_context/assets/
           mkdir -p build_context/templates && cp -r juno-assets-server.git/templates/* build_context/templates/
+          mkdir -p build_context/scripts && cp -r juno-assets-server.git/scripts/* build_context/scripts/
           exit 0
   - put: assets-server.image
     params:
