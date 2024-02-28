@@ -84,7 +84,7 @@ jobs:
         path: "/bin/sh"
         args:
         - "-c"
-        - 'exit 1
+        - 'exit 0
 
           '
 - name: build-assets-server-image
