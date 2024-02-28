@@ -47,7 +47,9 @@ run:
         # dir is something like ./libs/juno-ui-components@1.1.5
         DIR=$(dirname $PACKAGE)
         # asset path is then ./libs
-        ASSET_PATH=$(dirname $DIR)
+        ASSET_PATH=$(basename $(dirname $DIR))
+        echo "DIR: $DIR, ASSET_PATH: $ASSET_PATH, NAME: $NAME, VERSION: $VERSION"
+
         rm -rf /tmp/data/$DIR
         rm -rf /tmp/data/$ASSET_PATH/$NAME@$VERSION
         mkdir -p /tmp/data/$ASSET_PATH/$NAME@$VERSION 
