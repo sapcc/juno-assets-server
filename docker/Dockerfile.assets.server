@@ -9,7 +9,7 @@ RUN rm -rf /usr/share/nginx/html && mkdir -p /usr/share/nginx/html
 # copy tls certificate and key
 # COPY --from=base /tmp/tls.crt /tmp/tls.key /etc/ssl/juno/ 
 # create self signed dummy certificate and key
-RUN mkdir -p /etc/ssl/juno ; apk add openssl ; openssl req -new -newkey rsa:4096 -days 365 -nodes -x509 \
+RUN mkdir -p /etc/ssl/juno ; apk add jq openssl ; openssl req -new -newkey rsa:4096 -days 365 -nodes -x509 \
   -subj "/C=US/ST=Denial/L=Springfield/O=Dis/CN=dummy" \
   -keyout /etc/ssl/juno/tls.key  -out /etc/ssl/juno/tls.crt
 
