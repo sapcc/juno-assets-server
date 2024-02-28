@@ -33,12 +33,9 @@ run:
       WORKDIR=$(pwd) 
       mkdir -p /tmp/data
       # copy current final data like externals, apps and libs to the data folder   
-      cp -r final_data/libs final_data/apps /tmp/data/
+      cp -r final_data/libs final_data/apps final_data/externals /tmp/data/
       mkdir -p /tmp/data/global && cp -r juno-assets-server.git/README.md /tmp/data/global/
-      # TODO: remove this line after the migration to the new build system
-      # cp -r final_data/externals /tmp/data/
-
-
+      # find all package.json files in the assets folder
       package_json_files=$(find $WORKDIR/assets/ -name package.json) 
       # copy passed assets to data (overwrite if exist and update latest). 
       for PACKAGE in $package_json_files; do
