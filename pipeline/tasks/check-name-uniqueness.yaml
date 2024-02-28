@@ -103,7 +103,7 @@ run:
         
         # Update build log
         jq "[.[] | select(.name != \"$NAME\")]" assets/build-log.json > passed/build-log.json
-        jq ". += [{\"name\":\"$NAME\",\"type\":\"$TYPE_FOLDER\",\"version\":\"$VERSION\",\"date\":\"$(date +%s)\",\"passed\":$PASSED,\"buildUrl\":\"$BUILD_URL\",\"check\":\"uniqueness\",\"error\":\"$ERROR\" }]" passed/build-log.json > tmp && mv tmp passed/build-log.json 
+        jq ". += [{\"name\":\"$NAME\",\"type\":\"$TYPE_FOLDER\",\"version\":\"$VERSION\",\"date\":\"$(date +%s)\",\"passed\":$PASSED,\"buildUrl\":\"$BUILD_URL\",\"check\":\"uniqueness\",\"error\":\"$ERROR\" }]" passed/build-log.json > tmp.json && mv tmp.json passed/build-log.json 
       done
 
       exit 0
