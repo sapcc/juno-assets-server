@@ -28,10 +28,10 @@ run:
       eval "$(swift auth)"
 
       cd input
-      package_json_files=$(ls ./**/package.json)
+      package_json_files=$(find . -name package.json)
       for package_json in $package_json_files; do
-        echo "Deleting parent directory of $package_json"
         dir=$(dirname $package_json)
+        echo "Deleting $dir"
         swift delete "${CONTAINER}" --prefix "${dir}/"
       done
 
