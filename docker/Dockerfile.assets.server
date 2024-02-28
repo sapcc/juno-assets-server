@@ -20,7 +20,7 @@ RUN cp -r /tmp/context/assets/* /usr/share/nginx/html/ && \
   cp /tmp/context/templates/index.html /usr/share/nginx/html/index.html
 
 # generate symlinks for latest version of apps and libs
-RUN cp /scripts/generate-latest-symlink.sh /usr/share/nginx/html/ && \
+RUN cp /tmp/context/scripts/generate-latest-symlink.sh /usr/share/nginx/html/ && \
   cd /usr/share/nginx/html/ && \
   ./generate-latest-symlink.sh apps && \
   ./generate-latest-symlink.sh libs && \
