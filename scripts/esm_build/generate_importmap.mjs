@@ -119,6 +119,7 @@ for (let file of files) {
   if (semverGt(semverCoerce(version), semverCoerce(latest.version)))
     packageRegistry[pkg.name]["latest"] = {
       ...packageRegistry[pkg.name][version],
+      version: "latest",
     }
 }
 
