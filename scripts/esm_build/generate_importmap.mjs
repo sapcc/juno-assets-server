@@ -119,7 +119,6 @@ for (let file of files) {
   if (semverGt(semverCoerce(version), semverCoerce(latest.version)))
     packageRegistry[pkg.name]["latest"] = {
       ...packageRegistry[pkg.name][version],
-      version: "latest",
     }
 }
 
@@ -149,12 +148,12 @@ for (let name in packageRegistry) {
     const pkgScopeKey = `${options.baseUrl}/${pkg.path}`
     // console.log(pkg.name, pkg.version, pkg.path)
 
-    log(cyan(`add ${pkg.name}@${pkg.version} to import map` + "\n"))
+    log(cyan(`add ${pkg.name}@${version} to import map` + "\n"))
 
     // since package regisrty contains only juno packages,
     // we need to add this package to the importmap's imports section under the
     // @juno scope
-    importMap.imports[`@juno/${pkg.name}@${pkg.version}`] =
+    importMap.imports[`@juno/${pkg.name}@${version}`] =
       `${options.baseUrl}/${pkg.path}/${pkg.entryFile}`
 
     // if the package has no peer dependencies, we can skip further processing
