@@ -116,10 +116,7 @@ for (let file of files) {
 
   // if the current version is greater than the latest, update the latest
   let latest = packageRegistry[pkg.name]["latest"] || { version: "0.0.0" }
-  if (
-    version === "latest" ||
-    semverGt(semverCoerce(version), semverCoerce(latest.version))
-  )
+  if (semverGt(semverCoerce(version), semverCoerce(latest.version)))
     packageRegistry[pkg.name]["latest"] = {
       ...packageRegistry[pkg.name][version],
     }
