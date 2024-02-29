@@ -34,6 +34,7 @@ run:
       mkdir -p /tmp/data
       # copy current final data like externals, apps and libs to the data folder   
       cp -r final_data/libs final_data/apps final_data/externals /tmp/data/
+      cp assets/build-log.json /tmp/data/ || true
       mkdir -p /tmp/data/global && cp -r juno-assets-server.git/README.md /tmp/data/global/
       # find all package.json files in the assets folder
       package_json_files=$(find $WORKDIR/assets/ -name package.json) 
