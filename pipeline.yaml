@@ -135,30 +135,80 @@ jobs:
       tag: assets-server.version/version
     get_params:
       skip_download: true
-- name: deploy-assets-server-to-s-qa-de-1
-  plan:
-  - get: juno-assets-server.git
-    trigger: true
-    passed:
-    - build-assets-server-image
 - name: deploy-assets-server-to-qa-de-2
+  serial: true
   plan:
-  - get: juno-assets-server.git
-    trigger: true
-    passed:
-    - build-assets-server-image
-- name: e2e-tests-assets-server-s-qa-de-1
+  - in_parallel:
+    - get: juno-assets-server.git
+    - get: secrets.git
+      params:
+        depth: 100
+    - get: assets-server.version
+      trigger: true
+      passed:
+      - build-assets-server-image
+  - task: deploy
+    file: secrets.git/ci/shared/task-helm-upgrade.yaml
+    input_mapping:
+      app.version: assets-server.version
+      helm-charts.git: juno-assets-server.git
+    params:
+      HELM_MAJOR_VERSION: '3'
+      CHART_PATH: helm-charts/assets_server
+      RELEASE: juno-v4-assets-server
+      NAMESPACE: juno
+      REGION: qa-de-2
+      TAG_VARIABLE: image.tag
+      VALUES: local:globals
+      KUBELOGON_USER: "((unified-kubernetes-auth/default.username))"
+      KUBELOGON_PASSWORD: "((unified-kubernetes-auth/default.password))"
+      VAULT_ROLE_ID: "((auth.role_id))"
+      VAULT_SECRET_ID: "((auth.secret_id))"
+- name: e2e-tests-assets-server-qa-de-2
+  serial: true
   plan:
-  - get: juno-assets-server.git
-    trigger: true
-    passed:
-    - deploy-assets-server-to-s-qa-de-1
+  - in_parallel:
+    - get: juno-assets-server.git
+    - get: assets-server.version
+      trigger: true
+      passed:
+      - deploy-assets-server-to-qa-de-2
+  - task: cypress
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source:
+          repository: keppel.eu-de-1.cloud.sap/ccloud/cypress-client
+          tag: latest
+      inputs:
+      - name: juno-assets-server.git
+        path: "/assets-server"
+      outputs:
+      - name: upload
+        path: "/upload"
+      run:
+        path: "/bin/sh"
+        args:
+        - "-c"
+        - |
+          cd /assets-server/e2e
+          CYPRESS_BASE_URL=https://assets.juno.qa-de-2.cloud.sap cypress run --browser chrome --spec "cypress/integration/assets-server/*"
+          mv -f /assets-server/e2e/cypress/screenshots /upload > /dev/null 2>&1 || true
+          mv -f /assets-server/e2e/cypress/videos /upload > /dev/null 2>&1 || true
+  - task: upload-cypress-result
+    file: juno-assets-server.git/pipeline/tasks/swift-upload.yaml
+    input_mapping:
+      input: upload
+    params:
+      CONTAINER: cypress
+      TARGET: juno/assets-server/qa-de-2
 - name: promote-prod-assets-server
   plan:
   - get: juno-assets-server.git
     trigger: false
     passed:
-    - e2e-tests-assets-server-s-qa-de-1
+    - e2e-tests-assets-server-qa-de-2
 - name: deploy-assets-server-to-eu-de-1
   plan:
   - get: juno-assets-server.git
@@ -302,9 +352,8 @@ groups:
   jobs:
   - validate-pending-assets
   - build-assets-server-image
-  - deploy-assets-server-to-s-qa-de-1
   - deploy-assets-server-to-qa-de-2
-  - e2e-tests-assets-server-s-qa-de-1
+  - e2e-tests-assets-server-qa-de-2
   - promote-prod-assets-server
   - deploy-assets-server-to-eu-de-1
   - e2e-tests-assets-server-eu-de-1
@@ -326,9 +375,8 @@ groups:
   - e2e-tests-assets-server-na-us-2
   - validate-pending-assets
   - build-assets-server-image
-  - deploy-assets-server-to-s-qa-de-1
   - deploy-assets-server-to-qa-de-2
-  - e2e-tests-assets-server-s-qa-de-1
+  - e2e-tests-assets-server-qa-de-2
   - promote-prod-assets-server
   - deploy-assets-server-to-eu-de-1
   - e2e-tests-assets-server-eu-de-1
@@ -350,9 +398,8 @@ groups:
   - e2e-tests-assets-server-na-us-2
   - validate-pending-assets
   - build-assets-server-image
-  - deploy-assets-server-to-s-qa-de-1
   - deploy-assets-server-to-qa-de-2
-  - e2e-tests-assets-server-s-qa-de-1
+  - e2e-tests-assets-server-qa-de-2
   - promote-prod-assets-server
   - deploy-assets-server-to-eu-de-1
   - e2e-tests-assets-server-eu-de-1
@@ -374,9 +421,8 @@ groups:
   - e2e-tests-assets-server-na-us-2
   - validate-pending-assets
   - build-assets-server-image
-  - deploy-assets-server-to-s-qa-de-1
   - deploy-assets-server-to-qa-de-2
-  - e2e-tests-assets-server-s-qa-de-1
+  - e2e-tests-assets-server-qa-de-2
   - promote-prod-assets-server
   - deploy-assets-server-to-eu-de-1
   - e2e-tests-assets-server-eu-de-1
@@ -424,6 +470,14 @@ resources:
     branch: main
     username: sapcc-bot
     password: "((github-access-token/sapcc-bot))"
+- name: secrets.git
+  type: git-proxy
+  webhook_token: lfkhslkfhs
+  check_every: 6h
+  source:
+    uri: git@github.wdf.sap.corp:cc/secrets.git
+    branch: master
+    private_key: "((github-private-key/cc-secrets))"
 - name: assets-server.version
   type: time-version-resource
   icon: lock
