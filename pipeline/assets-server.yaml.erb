@@ -83,6 +83,7 @@ groups:
 
 jobs:
   - name: validate-pending-assets
+    serial: true
     plan:
       - get: juno-assets-server.git
       - get: meta  

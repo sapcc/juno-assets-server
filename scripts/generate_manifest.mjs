@@ -118,6 +118,7 @@ files.sort().forEach(async (file) => {
     keywords: pkg.keywords || [],
     license: pkg.license,
     repository: pkg.repository,
+    mountable: pkg.mountable,
   }
 
   // replace latest with the actual version greater than the current one

@@ -30,7 +30,7 @@ describe(`Preflight`, () => {
         expect(response.status).to.eq(200)
       })
 
-      if (name === "auth" || app.type !== "app") return
+      if (app.mountable === false || app.type !== "app") return
 
       cy.log("MOUNT")
       let appConf = { name: app.name, version: app.version, props: {} }
