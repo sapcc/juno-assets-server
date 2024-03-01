@@ -40,3 +40,12 @@ run:
       else
         swift download $OPTIONS $CONTAINER
       fi
+
+      if [ -n "$DELETE_AFTER_DOWNLOAD" ]; then
+        if [ "$DELETE_AFTER_DOWNLOAD" == "true" ]; then
+          prefixes=$(ls -d */)
+          for p in $prefixes; do
+            swift delete $CONTAINER -p $p
+          done
+        fi
+      fi
