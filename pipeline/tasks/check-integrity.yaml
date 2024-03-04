@@ -30,7 +30,7 @@ run:
       cd ..
 
       # create the build-log file 
-      rm -f output/build-log.json && touch output/build-log.json && jq -n '[]' > output/build-log.json
+
       package_json_files=$(find ./input -type f -name package.json)
       for f in $package_json_files; do
         ERROR=""
@@ -90,7 +90,7 @@ run:
           msg_error "  FAILED"
         fi
 
-        jq ". += [{\"name\":\"$NAME\",\"type\":\"$TYPE\",\"version\":\"$VERSION\",\"date\":\"$(date +%s)\",\"passed\":$PASSED,\"buildUrl\":\"$BUILD_URL\",\"check\":\"integrity\",\"error\":\"$ERROR\" }]" output/build-log.json > tmp.json && mv tmp.json output/build-log.json 
+        /ci/scripts/build_log.sh log --file output/build-log.sh --name $NAME --type $TYPE --version $VERSION --pased $PASSED --build-url $BUILD_URL --check integrity --error $ERROR
       done
 
       exit 0

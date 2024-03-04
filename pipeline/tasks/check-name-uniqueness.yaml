@@ -31,6 +31,11 @@ run:
 
       source /ci/scripts/logger.sh
 
+      # if file assets/build-log.json exists, then copy it to passed/build-log.json
+      if [ -f assets/build-log.json ]; then
+        cp assets/build-log.json passed/build-log.json
+      fi
+
       # generate build url 
       cd meta 
       BUILD_URL="$(cat atc-external-url)/teams/$(cat build-team-name)/pipelines/$(cat build-pipeline-name)/jobs/$(cat build-job-name)/builds/$(cat build-name)" 
@@ -102,9 +107,7 @@ run:
         fi
         
         # Update build log
-        jq "[.[] | select(.name != \"$NAME\")]" assets/build-log.json > tmp.json && mv tmp.json passed/build-log.json
-        jq ". += [{\"name\":\"$NAME\",\"type\":\"$TYPE_FOLDER\",\"version\":\"$VERSION\",\"date\":\"$(date +%s)\",\"passed\":$PASSED,\"buildUrl\":\"$BUILD_URL\",\"check\":\"uniqueness\",\"error\":\"$ERROR\" }]" passed/build-log.json > tmp.json && mv tmp.json passed/build-log.json 
-
+        /ci/scripts/build_log.sh --file passed/build-log.json --name $NAME --type $TYPE_FOLDER --version $VERSION --passed $PASSED --check "name uniqueness" --build-url $BUILD_URL --error "$ERROR"
       done
 
       exit 0

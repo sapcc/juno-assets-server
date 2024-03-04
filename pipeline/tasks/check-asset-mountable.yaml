@@ -47,7 +47,11 @@ run:
       BUILD_RESULTS="$(pwd)/test_results/build-$BUILD_NAME"
       mkdir -p "$BUILD_RESULTS"
 
-      cp assets/build-log.json passed/build-log.json
+      # if assets/build-log.json exists, copy it to passed/build-log.json
+      if [ -f assets/build-log.json ]; then
+        cp assets/build-log.json passed/build-log.json
+      fi
+
       msg_info "copy e2e tests from juno-assets-server.git to ./e2e"
       cp -r ./juno-assets-server.git/e2e .
       msg_info "copy mount-test.html to test_data"
@@ -88,8 +92,9 @@ run:
         fi
 
         # Update build log
-        jq "[.[] | select(.name != \"$NAME\")]" ../passed/build-log.json > /tmp/log.json
-        jq ". += [{\"name\":\"$NAME\",\"type\":\"$TYPE_FOLDER\",\"version\":\"$VERSION\",\"date\":\"$(date +%s)\",\"passed\":$PASSED,\"buildUrl\":\"$BUILD_URL\",\"check\":\"mountable\",\"error\":\"$ERROR\" }]" /tmp/log.json > ../passed/build-log.json 
+        /ci/assets/scripts/build_log.sh --file ../passed/build-log.json --name $NAME --type $TYPE_FOLDER --version $VERSION --passed $PASSED --check mountable --build-url $BUILD_URL --error $ERROR
       done
 
+      # print build log using jq
+      cat ../passed/build-log.json | jq
       exit 0
