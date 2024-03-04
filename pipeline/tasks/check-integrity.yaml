@@ -90,7 +90,7 @@ run:
           msg_error "  FAILED"
         fi
 
-        /ci/scripts/build_log.sh log --file output/build-log.sh --name $NAME --type $TYPE --version $VERSION --pased $PASSED --build-url $BUILD_URL --check integrity --error $ERROR
+        /ci/scripts/build_log.sh log --file output/build-log.sh --name $NAME --type $TYPE --version $VERSION --passed $PASSED --build-url $BUILD_URL --check integrity --error $ERROR
       done
 
       exit 0
