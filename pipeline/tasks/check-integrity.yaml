@@ -67,7 +67,6 @@ run:
         
         if [ $TYPE == "libs" ]; then
           msg_info "  main file ${GREEN}not applicable"
-          continue
         fi
 
         MAIN=$(jq -r ".main" $f)
