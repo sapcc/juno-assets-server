@@ -20,7 +20,7 @@ describe(`Preflight`, () => {
 
     cy.request("/manifest.json").then((response) => {
       let manifest = response.body
-      const versions = manifest[name]
+      const versions = manifest[name] || manifest["_global"]?.[name]
       const app = Object.values(versions).find((v) => v.version === version)
 
       expect(app).to.not.be.undefined

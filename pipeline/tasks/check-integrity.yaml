@@ -72,7 +72,7 @@ run:
 
         MAIN=$(jq -r ".main" $f)
 
-        if [ "$MAIN" == "null" ]; then 
+        if [ "$TYPE" == "apps" ] && [ "$MAIN" == "null" ]; then 
           MAIN=$(jq -r ".module" $f)
           if [ "$MAIN" == "null" ] || [ ! -f "./input/$TYPE/$NAME/$MAIN" ]; then
             msg_info "  main file ${RED}missing ($MAIN, did you forget to bundle?)"
