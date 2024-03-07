@@ -92,7 +92,7 @@ run:
         fi
 
         # Update build log
-        /ci/assets/scripts/build_log.sh --file ../passed/build-log.json --name $NAME --type $TYPE_FOLDER --version $VERSION --passed $PASSED --check mountable --build-url $BUILD_URL --error $ERROR
+        juno-assets-server.git/scripts/build_log.sh --file ../passed/build-log.json --name $NAME --type $TYPE_FOLDER --version $VERSION --passed $PASSED --check mountable --build-url $BUILD_URL --error $ERROR
       done
 
       # print build log using jq
