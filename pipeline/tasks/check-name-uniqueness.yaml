@@ -107,7 +107,7 @@ run:
         fi
         
         # Update build log
-        /ci/scripts/build_log.sh --file passed/build-log.json --name $NAME --type $TYPE_FOLDER --version $VERSION --passed $PASSED --check "name uniqueness" --build-url $BUILD_URL --error "$ERROR"
+        /ci/scripts/build_log.sh log --file passed/build-log.json --name $NAME --type $TYPE_FOLDER --version $VERSION --passed $PASSED --check "name uniqueness" --build-url $BUILD_URL --error "$ERROR"
       done
 
       exit 0
