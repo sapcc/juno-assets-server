@@ -23,43 +23,39 @@ describe(`Preflight`, () => {
       const versions = manifest[name] || manifest["_global"]?.[name]
       const app = Object.values(versions).find((v) => v.version === version)
 
-      cy.log("NAME: " + name)
-      cy.log("VERSION: " + version)
-      cy.log("APP: " + JSON.stringify(app))
-      cy.log("VERSIONS: " + JSON.stringify(versions))
-      // expect(app).to.not.be.undefined
-      // expect(app).to.have.property("name")
-      // expect(app.name).to.eq(name)
-      // cy.request(app.entryFile).should((response) => {
-      //   expect(response.status).to.eq(200)
-      // })
+      expect(app).to.not.be.undefined
+      expect(app).to.have.property("name")
+      expect(app.name).to.eq(name)
+      cy.request(app.entryFile).should((response) => {
+        expect(response.status).to.eq(200)
+      })
 
-      // if (app.mountable === false || app.type !== "app") return
+      if (app.mountable === false || app.type !== "app") return
 
-      // cy.log("MOUNT")
-      // let appConf = { name: app.name, version: app.version, props: {} }
-      // if (app.appProps) {
-      //   // default prop values
-      //   const defaultPropValues = { currentHost: "https://localhost" }
+      cy.log("MOUNT")
+      let appConf = { name: app.name, version: app.version, props: {} }
+      if (app.appProps) {
+        // default prop values
+        const defaultPropValues = { currentHost: "https://localhost" }
 
-      //   Object.keys(app.appProps).forEach((key) => {
-      //     if (app.appProps[key]?.type === "required")
-      //       // use default prop vaue or "test"
-      //       appConf.props[key] = defaultPropValues[key] || "test"
-      //   })
-      // }
-      // cy.log("mount app: " + JSON.stringify(appConf))
-      // let encodedAppConf = btoa(JSON.stringify(appConf))
+        Object.keys(app.appProps).forEach((key) => {
+          if (app.appProps[key]?.type === "required")
+            // use default prop vaue or "test"
+            appConf.props[key] = defaultPropValues[key] || "test"
+        })
+      }
+      cy.log("mount app: " + JSON.stringify(appConf))
+      let encodedAppConf = btoa(JSON.stringify(appConf))
 
-      // cy.visit("/mount-test.html?config=" + encodedAppConf)
-      // cy.wait(DELAY).then(() => {
-      //   cy.get(`[data-juno-app="${app.name}"]`).should("exist") // check if app is mounted)
-      //   cy.wait(DELAY).then(() => {
-      //     expect(windowErrorSpy).to.not.be.called
-      //     expect(windowWarnSpy).to.not.be.calledWithMatch(allowedMessagesRegex)
-      //   })
-      //   cy.log("\x1b[32mSUCCESS\x1b[37m")
-      // })
+      cy.visit("/mount-test.html?config=" + encodedAppConf)
+      cy.wait(DELAY).then(() => {
+        cy.get(`[data-juno-app="${app.name}"]`).should("exist") // check if app is mounted)
+        cy.wait(DELAY).then(() => {
+          expect(windowErrorSpy).to.not.be.called
+          expect(windowWarnSpy).to.not.be.calledWithMatch(allowedMessagesRegex)
+        })
+        cy.log("\x1b[32mSUCCESS\x1b[37m")
+      })
     })
   })
 })
