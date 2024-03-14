@@ -29,6 +29,7 @@ function log(...args) {
 const availableArgs = [
   "--exit-on-error=[true|false]",
   "--src=DIR_PATH",
+  "--server-root=DIR_PATH",
   "--importmap-path=FILE_PATH",
   "--node-modules-path=DIR_PATH",
   "--ignore-externals=true|false",
@@ -47,6 +48,7 @@ const options = {
   src: pathLib.dirname(url.fileURLToPath(import.meta.url)),
   baseUrl: "%BASE_URL%",
   importmapPath: "./importmap.json",
+  serverRoot: "./",
   nodeModulesPath: "./tmp",
   externalPath: "externals",
   ignoreExternals: false,
@@ -76,6 +78,8 @@ if (options.help || options.h) {
   )
 }
 
+// this timestamp will be added to the index.js files for own libs
+const TIMESTAMP = Date.now()
 // #########################################################################
 const PACKAGES_PATHS = ["apps", "libs"]
 // determine the assets source directory
@@ -91,8 +95,19 @@ const files = glob.sync(globPattern, {
 // build package registry based on juno packages
 const packageRegistry = {}
 
-// this timestamp will be added to the index.js files for own libs
-const timestamp = Date.now()
+const SERVER_ROOT = pathLib.resolve(options.serverRoot)
+console.log("===SERVER_ROOT===", SERVER_ROOT)
+
+// generate importmap entry url
+const importmapEntryUrl = (path, settings = {}) => {
+  let entryUrl = pathLib.join(
+    options.baseUrl,
+    pathLib.relative(SERVER_ROOT, path)
+  )
+  if (settings.timestamp) entryUrl += `?t=${TIMESTAMP}`
+
+  return entryUrl
+}
 
 // build package registry by parsing all package.json files
 for (let file of files) {
@@ -100,8 +115,8 @@ for (let file of files) {
   let pkg = JSON.parse(fs.readFileSync(file))
 
   const entryFile = pkg.module || pkg.main || "index.js"
-  const entryDir = entryFile.slice(0, entryFile.lastIndexOf("/") + 1) || "/"
-  const path = file.replace(pathRegex, "$1")
+  const entryDir = pathLib.dirname(file) //entryFile.slice(0, entryFile.lastIndexOf("/") + 1) || "/"
+  const path = pathLib.dirname(file) //file.replace(pathRegex, "$1")
   const version = pkg.version
 
   packageRegistry[pkg.name] = packageRegistry[pkg.name] || {}
@@ -109,7 +124,7 @@ for (let file of files) {
     name: pkg.name,
     version,
     path,
-    entryFile: entryFile + "?" + timestamp,
+    entryFile,
     entryDir,
     peerDependencies: options.ignoreExternals ? false : pkg.peerDependencies,
   }
@@ -135,8 +150,8 @@ const buildResult = await convertToEsm("es-module-shims", "1.6.2", {
 })
 
 fs.cpSync(
-  pathLib.join(options.externalPath, buildResult.buildName),
-  pathLib.join(options.externalPath, `npm:${buildResult.buildName}`),
+  pathLib.resolve(options.externalPath, buildResult.buildName),
+  pathLib.resolve(options.externalPath, `npm:${buildResult.buildName}`),
   { recursive: true, overwrite: true }
 )
 // end add es-module-shim
@@ -145,7 +160,7 @@ fs.cpSync(
 for (let name in packageRegistry) {
   for (let version in packageRegistry[name]) {
     const pkg = packageRegistry[name][version]
-    const pkgScopeKey = `${options.baseUrl}/${pkg.path}`
+    const pkgScopeKey = importmapEntryUrl(pathLib.join(pkg.entryDir, "/"))
     // console.log(pkg.name, pkg.version, pkg.path)
 
     log(cyan(`add ${pkg.name}@${version} to import map` + "\n"))
@@ -153,8 +168,10 @@ for (let name in packageRegistry) {
     // since package regisrty contains only juno packages,
     // we need to add this package to the importmap's imports section under the
     // @juno scope
-    importMap.imports[`@juno/${pkg.name}@${version}`] =
-      `${options.baseUrl}/${pkg.path}/${pkg.entryFile}`
+    importMap.imports[`@juno/${pkg.name}@${version}`] = importmapEntryUrl(
+      pathLib.join(pkg.path, pkg.entryFile),
+      { timestamp: true }
+    )
 
     // if the package has no peer dependencies, we can skip further processing
     if (!pkg.peerDependencies) {
@@ -182,7 +199,10 @@ for (let name in packageRegistry) {
 
         // the peer dependency is a juno package, so we need to add it to the importmap's scopes section
         importMap.scopes[`${pkgScopeKey}/`][ownPackage.name] =
-          `${options.baseUrl}/${ownPackage.path}/${ownPackage.entryFile}`
+          importmapEntryUrl(
+            pathLib.join(ownPackage.path, ownPackage.entryFile),
+            { timestamp: true }
+          )
         // we can skip further processing
         continue
       }
@@ -198,7 +218,7 @@ for (let name in packageRegistry) {
       const buildResult = await convertToEsm(depName, depVersion, {
         buildDir: options.externalPath,
         verbose: options.verbose,
-        nodeModulesPath: options.nodeModulesPath,
+        nodeModulesDir: options.nodeModulesPath,
       })
 
       // add external dependency to import map, key is the path to the package
@@ -213,27 +233,33 @@ for (let name in packageRegistry) {
 
           // add entry points to the scope. E.g. "react": "/externals/react/index.js"
           for (let entryPoint in externalDependency.entryPoints) {
-            importMap.scopes[key][entryPoint] =
-              `${options.baseUrl}/${externalDependency.entryPoints[entryPoint]}`
+            importMap.scopes[key][entryPoint] = importmapEntryUrl(
+              pathLib.join(externalDependency.entryPoints[entryPoint]),
+              { timestamp: true }
+            )
 
+            const depEntryUrl = importmapEntryUrl(
+              pathLib.join(externalDependency.path)
+            )
             // add entrypoints of the package itself to the import map for this package
-            importMap.scopes[`${options.baseUrl}/${externalDependency.path}/`] =
-              importMap.scopes[
-                `${options.baseUrl}/${externalDependency.path}/`
-              ] || {}
-            importMap.scopes[`${options.baseUrl}/${externalDependency.path}/`][
-              entryPoint
-            ] =
-              `${options.baseUrl}/${externalDependency.entryPoints[entryPoint]}`
+            importMap.scopes[`${depEntryUrl}/`] =
+              importMap.scopes[`${depEntryUrl}/`] || {}
+            importMap.scopes[`${depEntryUrl}/`][entryPoint] = importmapEntryUrl(
+              pathLib.join(externalDependency.entryPoints[entryPoint]),
+              { timestamp: true }
+            )
           }
         }
         // if dependencies are defined, we need to add them to the import map
         if (externalDependency.dependencies) {
+          const depEntryUrl = importmapEntryUrl(
+            pathLib.join(externalDependency.path)
+          )
           // add dependencies to import map
           for (let dep in externalDependency.dependencies) {
             addDependenciesRecursive(
               externalDependency.dependencies[dep],
-              `${options.baseUrl}/${externalDependency.path}/`
+              `${depEntryUrl}/`
             )
           }
         }
