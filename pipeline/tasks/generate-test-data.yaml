@@ -60,7 +60,7 @@ run:
       for l in final_data/libs/*; do
         name=$(basename $l)
         if [ -d "./test_data/libs/${name}" ]; then continue; fi
-        mkdir -p ./test_data/libs/${name} && cp -r $l ./test_data/libs/${name}
+        mkdir -p ./test_data/libs && cp -r $l ./test_data/libs/${name}
       done
       # DONE  
 

@@ -126,6 +126,9 @@ for (let file of files) {
     peerDependencies: options.ignoreExternals ? false : pkg.peerDependencies,
   }
 
+  // exit 1
+  return
+
   // if the current version is greater than the latest, update the latest
   let latest = packageRegistry[pkg.name]["latest"] || { version: "0.0.0" }
   if (semverGt(semverCoerce(version), semverCoerce(latest.version)))
