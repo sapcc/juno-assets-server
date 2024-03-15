@@ -53,10 +53,6 @@ if [ "$COMMAND" = "merge" ]; then
       OUTPUT="$2"
       shift
       ;;
-    *)
-      # unknown option
-      echo "Unknown option: $key, ignoring it."
-      ;;
     esac
     shift
   done

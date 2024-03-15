@@ -100,9 +100,9 @@ console.log("===SERVER_ROOT===", SERVER_ROOT)
 
 // generate importmap entry url
 const importmapEntryUrl = (path, settings = {}) => {
-  let entryUrl = new URL(pathLib.relative(SERVER_ROOT, path), options.baseUrl)
-  if (settings.timestamp) entryUrl.searchParams.set("t", TIMESTAMP)
-
+  let entryUrl =
+    options.baseUrl + pathLib.join("/", pathLib.relative(SERVER_ROOT, path))
+  if (settings.timestamp) entryUrl += `?${TIMESTAMP}`
   return entryUrl
 }
 
