@@ -62,28 +62,29 @@ run:
 
       # Performance boost:
       # only if any package.json file exists in the assets folder 
+      if [ -n "$package_json_files" ]; then
+        # do it once
+        # rm -rf /tmp/data/externals/npm:*
 
-      # do it once
-      # rm -rf /tmp/data/externals/npm:*
-
-      # Generate importmap and manifest only for pending apps and libs
-      # this step also generates the externals esm packages
-      node /ci/scripts/esm_build/generate_importmap.mjs \
-      --node-modules-path=/tmp/ \
-      --external-path=./externals \
-      --exit-on-error=false \
-      --src=./ \
-      --base-url="%BASE_URL%" \
-      --ignore-externals=false \
-      --importmap-path=./importmap.json  \
-      --verbose=false ; \
-      \
-      node /ci/scripts/generate_manifest.mjs \
-      --src=./ \
-      --output=./manifest.json \
-      --base-url="%BASE_URL%" \
-      --assets-build-log=./build-log.json \
-      --verbose=false
+        # Generate importmap and manifest only for pending apps and libs
+        # this step also generates the externals esm packages
+        node /ci/scripts/esm_build/generate_importmap.mjs \
+        --node-modules-path=/tmp/ \
+        --external-path=./externals \
+        --exit-on-error=false \
+        --src=./ \
+        --base-url="%BASE_URL%" \
+        --ignore-externals=false \
+        --importmap-path=./importmap.json  \
+        --verbose=false ; \
+        \
+        node /ci/scripts/generate_manifest.mjs \
+        --src=./ \
+        --output=./manifest.json \
+        --base-url="%BASE_URL%" \
+        --assets-build-log=./build-log.json \
+        --verbose=false
+      fi
 
       # Performance boost:
       # consider only the pending apps and libs
