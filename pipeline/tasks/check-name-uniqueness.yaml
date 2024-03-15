@@ -61,18 +61,23 @@ run:
         msg_info "  version ${GREEN}$VERSION"
         msg_default "  checking..."
 
+        
         # 2. check 
-        if [ $(jq "has(\"$NAME\")" final_data/manifest.json) == "false" ]; then
+        if [ $(jq "has(\"$NAME\")" final_data/manifest.json) == "false" ] && [ $(jq "._global | has(\"$NAME\")' final_data/manifest.json  ]; then
           # initial state
           msg_success "  name is not present in manifest.json, asset is new"
         else
-          # app is already in the manifest (not new)  
+          # app is already in the manifest (not new)
+          package_data=$(jq ".\"$NAME\"" final_data/manifest.json)
+          if [ -z "$package_data" ]; then
+            package_data=$(jq "._global.\"$NAME\"" final_data/manifest.json)
+          fi 
           
           # 3. check
-          versions=$(jq -r ".\"$NAME\" | . [] | .version" final_data/manifest.json)
+          versions=$(echo $package_data | jq -r '.[] | .version')
           sorted_versions=$(echo "$versions" | tr ' ' '\n' | sort -t. -k1,1n -k2,2n -k3,3n -k4,4n | tr '\n' ' ')
           latest_version=$(echo "$sorted_versions" | awk '{print $NF}')
-          latest_package=$(jq -r ".\"$NAME\".\"$latest_version\"" final_data/manifest.json)
+          latest_package=$(echo $package_data | jq -r ".[] | select(.version == \"$latest_version\")")
 
           LATEST_REPOSITORY=$(echo $latest_package | jq -r '.repository')
           LATEST_VERSION=$(echo $latest_package | jq -r '.version')
