@@ -183,7 +183,7 @@ async function convertToEsm(packageName, packageVersion, options = {}) {
         const buildResults = await esbuild.build({
           entryPoints: [entryPoint],
           bundle: true,
-          // minify: true,
+          minify: true,
           metafile: true,
           format: "esm",
           platform: "browser",

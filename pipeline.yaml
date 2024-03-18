@@ -470,7 +470,7 @@ resources:
     uri: https://github.com/sapcc/juno-assets-server.git
     branch: main
     username: sapcc-bot
-    password: "((github-access-token/sapcc-bot))"
+    password: "((github-access-token/ccee-bot))"
 - name: secrets.git
   type: git-proxy
   webhook_token: lfkhslkfhs
