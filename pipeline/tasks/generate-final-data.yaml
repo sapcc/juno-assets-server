@@ -36,10 +36,10 @@ run:
       /ci/scripts/build_log.sh merge --output final-build-log.json final_data/build-log.json assets/build-log.json
 
       # copy current final data like externals, apps and libs to the data folder   
-      cp -r final_data/libs final_data/apps final_data/externals /tmp/data/
-      cp final-build-log.json /tmp/data/
-      cp final-build-log.json data/
-      mkdir -p /tmp/data/global && cp -r juno-assets-server.git/README.md /tmp/data/global/
+      cp -r final_data/libs final_data/apps final_data/externals /tmp/data/ > /dev/null
+      cp final-build-log.json /tmp/data/ > /dev/null
+      cp final-build-log.json data/ > /dev/null
+      mkdir -p /tmp/data/global && cp -r juno-assets-server.git/README.md /tmp/data/global/ > /dev/null
       # find all package.json files in the assets folder
       package_json_files=$(find $WORKDIR/assets/ -name package.json) 
       # copy passed assets to data (overwrite if exist and update latest). 
@@ -55,7 +55,7 @@ run:
         rm -rf /tmp/data/$DIR
         rm -rf /tmp/data/$ASSET_PATH/$NAME@$VERSION
         mkdir -p /tmp/data/$ASSET_PATH/$NAME@$VERSION 
-        cp -r $DIR/* /tmp/data/$ASSET_PATH/$NAME@$VERSION/
+        cp -r $DIR/* /tmp/data/$ASSET_PATH/$NAME@$VERSION/ > /dev/null
       done
 
       cd /tmp/data
