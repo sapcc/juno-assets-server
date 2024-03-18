@@ -63,7 +63,7 @@ run:
 
         
         # 2. check 
-        if [ $(jq "has(\"$NAME\")" final_data/manifest.json) == "false" ] && [ $(jq "._global | has(\"$NAME\")" final_data/manifest.json)  ]; then
+        if [ $(jq "has(\"$NAME\")" final_data/manifest.json) == "false" ] && [ $(jq "._global | has(\"$NAME\")" final_data/manifest.json) == "false" ]; then
           # initial state
           msg_success "  name is not present in manifest.json, asset is new"
         else
