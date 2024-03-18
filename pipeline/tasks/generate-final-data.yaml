@@ -33,6 +33,10 @@ run:
       WORKDIR=$(pwd) 
       mkdir -p /tmp/data
 
+      # create an empty file if assets/build-log.json does not exist
+      if [ ! -f assets/build-log.json ]; then
+        echo "[]" > assets/build-log.json
+      fi
       /ci/scripts/build_log.sh merge --output final-build-log.json final_data/build-log.json assets/build-log.json
 
       # copy current final data like externals, apps and libs to the data folder ignore errors
