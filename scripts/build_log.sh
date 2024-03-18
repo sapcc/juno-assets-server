@@ -60,7 +60,7 @@ if [ "$COMMAND" = "merge" ]; then
   # create output file folder if it does not exist
   mkdir -p "$(dirname "$OUTPUT")"
   # merge all input files to the output file
-  jq -s 'flatten' "$@" >"$OUTPUT"
+  jq -s 'flatten | group_by(.name) | map(add)' "$@" >"$OUTPUT"
   exit 0
 fi
 
