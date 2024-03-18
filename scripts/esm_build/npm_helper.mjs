@@ -99,9 +99,12 @@ function installNpmPackage(name, version = "latest", options = {}) {
   // attention: --legacy-peer-deps option is needed to avoid warnings while overwriting
   // packages with the same name but different versions
   // --save-exact option is needed to install the exact version
-  child_process.execSync(`npm i "${name}@${version}" --save-exact`, {
-    cwd: nodeModulesDir,
-  })
+  child_process.execSync(
+    `npm i "${name}@${version}" --save-exact --legacy-peer-deps`,
+    {
+      cwd: nodeModulesDir,
+    }
+  )
 
   // try to install peer dependencies which are declared in the package.json
   // as optional in peerDependenciesMeta

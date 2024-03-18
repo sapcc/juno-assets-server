@@ -35,11 +35,11 @@ run:
 
       /ci/scripts/build_log.sh merge --output final-build-log.json final_data/build-log.json assets/build-log.json
 
-      # copy current final data like externals, apps and libs to the data folder   
-      cp -r final_data/libs final_data/apps final_data/externals /tmp/data/ > /dev/null
-      cp final-build-log.json /tmp/data/ > /dev/null
-      cp final-build-log.json data/ > /dev/null
-      mkdir -p /tmp/data/global && cp -r juno-assets-server.git/README.md /tmp/data/global/ > /dev/null
+      # copy current final data like externals, apps and libs to the data folder ignore errors
+      cp -r final_data/libs final_data/apps final_data/externals /tmp/data/ 2>/dev/null
+      cp final-build-log.json /tmp/data/ 2>/dev/null
+      cp final-build-log.json data/ 2>/dev/null
+      mkdir -p /tmp/data/global && cp -r juno-assets-server.git/README.md /tmp/data/global/ 2>/dev/null
       # find all package.json files in the assets folder
       package_json_files=$(find $WORKDIR/assets/ -name package.json) 
       # copy passed assets to data (overwrite if exist and update latest). 
@@ -55,14 +55,14 @@ run:
         rm -rf /tmp/data/$DIR
         rm -rf /tmp/data/$ASSET_PATH/$NAME@$VERSION
         mkdir -p /tmp/data/$ASSET_PATH/$NAME@$VERSION 
-        cp -r $DIR/* /tmp/data/$ASSET_PATH/$NAME@$VERSION/ > /dev/null
+        cp -r $DIR/* /tmp/data/$ASSET_PATH/$NAME@$VERSION/ 2>/dev/null
       done
 
       cd /tmp/data
 
       # Performance boost:
       # only if any package.json file exists in the assets folder 
-      if [ -n "$package_json_files" ]; then
+      #if [ -n "$package_json_files" ]; then
         # do it once
         # rm -rf /tmp/data/externals/npm:*
 
@@ -84,7 +84,7 @@ run:
         --base-url="%BASE_URL%" \
         --assets-build-log=./build-log.json \
         --verbose=false
-      fi
+      #fi
 
       # Performance boost:
       # consider only the pending apps and libs
