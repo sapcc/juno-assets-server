@@ -58,6 +58,7 @@ run:
       cp ./juno-assets-server.git/templates/mount-test.html ./test_data/      
       msg_info "create serve.config.json"
       msg_info "this is needed to avoid clean urls, we want to have extensions like .html"
+      # cleanUrls	Have the .html extension stripped from paths
       echo '{"cleanUrls": false}' > /tmp/serve.config.json
       msg_info "run server in test_data"
       serve ./test_data -n -u -p 3000 -c /tmp/serve.config.json & sleep 3 

@@ -43,6 +43,7 @@ run:
       cp -r final_data/libs final_data/apps final_data/externals /tmp/data/ 2>/dev/null
       cp final-build-log.json /tmp/data/build-log.json
       cp final-build-log.json data/build-log.json 2>/dev/null
+      cp juno-assets-server.git/templates/mount_test.html data/mount_test.html 2>/dev/null
       mkdir -p /tmp/data/global && cp -r juno-assets-server.git/README.md /tmp/data/global/ 2>/dev/null
       # find all package.json files in the assets folder
       package_json_files=$(find $WORKDIR/assets/ -name package.json) 
