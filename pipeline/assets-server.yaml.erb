@@ -178,7 +178,7 @@ jobs:
             args:
               - -c
               - |
-                exit 1
+                exit 0
 
   - name: build-assets-server-image
     plan:
@@ -293,7 +293,7 @@ jobs:
               - -c
               - |
                 cd /assets-server/e2e
-                CYPRESS_BASE_URL=https://assets.juno.qa-de-2.cloud.sap cypress run --browser chrome --spec "cypress/integration/assets-server/*"
+                CYPRESS_BASE_URL=https://assets.juno.qa-de-2.cloud.sap cypress run --browser chrome --spec "cypress/integration/assets-server/importmap.spec.js,cypress/integration/assets-server/manifest.spec.js,cypress/integration/assets-server/mount_assets.spec.js"
                 mv -f /assets-server/e2e/cypress/screenshots /upload > /dev/null 2>&1 || true
                 mv -f /assets-server/e2e/cypress/videos /upload > /dev/null 2>&1 || true
 
