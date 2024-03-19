@@ -82,8 +82,6 @@ run:
           fi  
         fi  
 
-        PASSED=true
-
         if $PASSED; then 
           msg_success "  PASSED"
           mkdir -p ./output/$TYPE/$NAME && cp -r $(dirname $f)/* ./output/$TYPE/$NAME/

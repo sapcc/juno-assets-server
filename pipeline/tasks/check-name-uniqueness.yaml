@@ -110,7 +110,6 @@ run:
         else
           PASSED=false
         fi
-        PASSED=true
         
         # Update build log
         /ci/scripts/build_log.sh log --file passed/build-log.json --name $NAME --type $TYPE_FOLDER --version $VERSION --passed $PASSED --check "name uniqueness" --build-url $BUILD_URL --error "$ERROR"

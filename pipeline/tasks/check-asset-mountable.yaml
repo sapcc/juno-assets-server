@@ -81,15 +81,15 @@ run:
         --config "{\"baseUrl\":\"http://127.0.0.1:3000\",\"screenshotsFolder\":\"$ASSET_TEST_RESULTS/screenshots\",\"videosFolder\":\"$ASSET_TEST_RESULTS/videos\"}"
 
         # Check the exit status of the cp command 
-        # if [ $? -eq 0 ]; then 
+        if [ $? -eq 0 ]; then 
           PASSED="true"
           mkdir -p "../passed/$TYPE_FOLDER/$NAME@$VERSION" && \
           cp -r $(dirname $f)/* "../passed/$TYPE_FOLDER/$NAME@$VERSION/" 
-        # else 
-        #   PASSED="false"
-        #   ERROR="mount test failed"
-        #   msg_info "===RESULT: $NAME@$VERSION $PASSED"
-        # fi
+        else 
+          PASSED="false"
+          ERROR="mount test failed"
+          msg_info "===RESULT: $NAME@$VERSION $PASSED"
+        fi
 
         # Update build log
         ../juno-assets-server.git/scripts/build_log.sh log --file ../passed/build-log.json --name $NAME --type $TYPE_FOLDER --version $VERSION --passed $PASSED --check mountable --build-url $BUILD_URL --error $ERROR
